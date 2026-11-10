@@ -38,7 +38,7 @@
       </span>
     </div>
     <div class="nav-backdrop" id="nav-backdrop"></div>
-    <nav class="rail-nav" id="rail-nav" hx-boost="true" hx-target="#main-content" hx-select="#main-content" hx-swap="innerHTML show:none">
+    <nav class="rail-nav" id="rail-nav" hx-boost="true" hx-target="#main-content" hx-select="#main-content" hx-swap="outerHTML show:none">
       <a class="tab {% if active == 'overview' %}is-active{% endif %}" href="/">Overview</a>
       <a class="tab {% if active == 'alerts' %}is-active{% endif %}" href="/alerts">Alerts</a>
       <a class="tab {% if active == 'nodes' %}is-active{% endif %}" href="/nodes">Nodes</a>
