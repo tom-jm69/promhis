@@ -61,15 +61,8 @@ class Settings(BaseSettings):
     metrics_password: str | None = None
     metrics_allowed_ips: tuple[str, ...] = ()
 
-    # Path to a signed license file (see src/promhis/licensing.py,
-    # docs/licensing.md). Unset or invalid means the Free tier — every
-    # licensed feature is cleanly hidden/disabled, nothing else changes.
-    license_file: str | None = None
-
-    # Custom branding (requires the `branding` feature licensed, see
-    # ROADMAP.md §19) — replaces the flame-mark + "Promhis" wordmark in the
-    # navbar/page title. Ignored entirely on an unlicensed instance; unset
-    # on a licensed one falls back to the same defaults.
+    # Custom branding — replaces the flame-mark + "Promhis" wordmark in the
+    # navbar/page title. Unset falls back to the stock defaults.
     brand_name: str = "Promhis"
     brand_logo_path: str | None = None
 

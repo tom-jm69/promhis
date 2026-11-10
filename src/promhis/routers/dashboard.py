@@ -13,7 +13,6 @@ from starlette.datastructures import FormData
 from promhis import crud, insights
 from promhis.auth import SESSION_KEY, generate_api_token, hash_api_token, require_login, verify_password
 from promhis.db import get_session
-from promhis.licensing import has_feature
 from promhis.models import AlertEvent, ApiToken, NotificationIntegration
 from promhis.notifications.base import mask_secret, raise_send_errors
 from promhis.notifications.registry import CHANNEL_CLASSES
@@ -107,11 +106,6 @@ async def overview(request: Request, session: AsyncSession = Depends(get_session
             "mttr": mttr,
             "top_noisy": top_noisy,
             "show_onboarding": show_onboarding,
-            # Free tier's one admin slot is always filled by the bootstrap
-            # admin from the first startup onward, so "invite a teammate"
-            # is only ever actionable with an `rbac` license — never a dead
-            # end, never gated on a slot count that can't exist on free tier.
-            "can_invite_teammate": has_feature("rbac"),
             "active": "overview",
         },
     )
@@ -192,7 +186,6 @@ async def alert_detail_page(
         "flaps": flaps,
         "fingerprint": fingerprint,
         "notes": notes,
-        "can_annotate": has_feature("annotations"),
         "active": "alerts",
     }
     if wants_partial(request):
@@ -264,19 +257,9 @@ async def audit_log_page(
 
 
 
-API_TOKEN_LIMIT_MESSAGE = (
-    "Free tier allows one active API token — revoke it to create a new one, "
-    "or a service_tokens license to create more."
-)
-
-
 @router.get("/api-tokens", response_class=HTMLResponse, dependencies=[Depends(require_login)])
 async def api_tokens_page(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse:
-    # One personal read-only token is free for every admin (docs/licensing.md)
-    # — this page is never locked. `service_tokens` only raises the active-token
-    # cap past one; it doesn't gate the feature's existence.
     tokens = await crud.list_api_tokens(session)
-    active_count = await crud.count_active_api_tokens(session)
     # Shown once, immediately after creation, then discarded — never stored
     # anywhere the raw token could be read back later.
     new_token = request.session.pop(NEW_TOKEN_SESSION_KEY, None)
@@ -286,7 +269,6 @@ async def api_tokens_page(request: Request, session: AsyncSession = Depends(get_
         {
             "tokens": tokens,
             "new_token": new_token,
-            "at_free_limit": active_count >= 1 and not has_feature("service_tokens"),
             "active": "api-tokens",
         },
     )
@@ -296,22 +278,14 @@ async def api_tokens_page(request: Request, session: AsyncSession = Depends(get_
 async def create_api_token_submit(
     request: Request, name: str = Form(...), session: AsyncSession = Depends(get_session)
 ) -> HTMLResponse | RedirectResponse:
-    active_count = await crud.count_active_api_tokens(session)
-    if active_count >= 1 and not has_feature("service_tokens"):
-        raise HTTPException(status_code=402, detail=API_TOKEN_LIMIT_MESSAGE)
     raw_token = generate_api_token()
     await crud.create_api_token(session, name=name.strip() or "unnamed", token_hash=hash_api_token(raw_token))
     if wants_partial(request):
         tokens = await crud.list_api_tokens(session)
-        new_active_count = await crud.count_active_api_tokens(session)
         return templates.TemplateResponse(
             request,
             "partials/api_tokens_panel.html",
-            {
-                "tokens": tokens,
-                "new_token": raw_token,
-                "at_free_limit": new_active_count >= 1 and not has_feature("service_tokens"),
-            },
+            {"tokens": tokens, "new_token": raw_token},
         )
     request.session[NEW_TOKEN_SESSION_KEY] = raw_token
     return RedirectResponse(url="/api-tokens", status_code=303)

@@ -10,21 +10,17 @@ from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 
 from promhis.config import settings
-from promhis.licensing import has_feature
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 def brand_name() -> str:
-    """Custom branding is a licensed feature (ROADMAP.md §19) — falls back
-    to "Promhis" on an unlicensed instance or when unconfigured, never blank.
-    """
-    return settings.brand_name if has_feature("branding") and settings.brand_name else "Promhis"
+    return settings.brand_name or "Promhis"
 
 
 def brand_logo_url() -> str | None:
-    return "/brand/logo" if has_feature("branding") and settings.brand_logo_path else None
+    return "/brand/logo" if settings.brand_logo_path else None
 
 
 def timeago(value: datetime | None) -> str:
@@ -122,4 +118,3 @@ templates.env.filters["sevclass"] = severity_class
 templates.env.filters["scriptjson"] = script_json
 templates.env.globals["brand_name"] = brand_name
 templates.env.globals["brand_logo_url"] = brand_logo_url
-templates.env.globals["has_feature"] = has_feature

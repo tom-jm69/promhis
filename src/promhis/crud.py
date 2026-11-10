@@ -202,10 +202,7 @@ async def set_alert_ack(session: AsyncSession, fingerprint: str, *, note: str, b
 
 
 async def list_annotations(session: AsyncSession, fingerprint: str) -> list[AlertAnnotation]:
-    """Incident notes for an alert, newest first — always readable regardless
-    of license state (docs/licensing.md: existing data stays viewable past
-    expiry, only *creating new* notes is gated). See `create_annotation`.
-    """
+    """Incident notes for an alert, newest first."""
     query = (
         select(AlertAnnotation)
         .where(AlertAnnotation.fingerprint == fingerprint)
@@ -224,11 +221,6 @@ async def create_annotation(session: AsyncSession, *, fingerprint: str, author: 
 
 
 async def delete_annotation(session: AsyncSession, annotation_id: int) -> bool:
-    """Deletion is cleanup, not the licensed capability itself — unlike
-    creation, it's never gated on `has_feature("annotations")` (see
-    `ee/annotations.py`), same way revoking an API token is always free even
-    though creating a *second* one isn't.
-    """
     annotation = await session.get(AlertAnnotation, annotation_id)
     if annotation is None:
         return False
@@ -513,15 +505,6 @@ async def list_api_tokens(session: AsyncSession) -> list[ApiToken]:
     query = select(ApiToken).order_by(col(ApiToken.created_at).desc())
     result = await session.execute(query)
     return list(result.scalars().all())
-
-
-async def count_active_api_tokens(session: AsyncSession) -> int:
-    """One active (non-revoked) token is free (docs/licensing.md); creating
-    beyond that requires the `service_tokens` feature.
-    """
-    query = select(func.count()).select_from(ApiToken).where(col(ApiToken.revoked).is_(False))
-    result = await session.execute(query)
-    return result.scalar_one()
 
 
 async def revoke_api_token(session: AsyncSession, token_id: int) -> bool:
@@ -823,8 +806,7 @@ async def sync_bootstrap_admin(session: AsyncSession, *, username: str, password
     result = await session.execute(query)
     bootstrap = result.scalars().first()
     if bootstrap is None:
-        # A non-bootstrap row might already occupy this username (shouldn't
-        # normally happen without an `rbac` license enabling multi-admin,
+        # A non-bootstrap row might already occupy this username (unusual,
         # but handled cleanly rather than crashing on a unique-constraint
         # violation).
         existing = await get_user_by_username(session, username)

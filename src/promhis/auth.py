@@ -105,12 +105,9 @@ async def require_token_or_login(
     webhook endpoint's Basic/Bearer scheme, which is a different audience.
     The audit log stays session-only; it's more sensitive, admin-facing data.
 
-    One personal read-only API token is free for every admin (docs/licensing.md)
-    — this dependency itself never checks licensing at all. What a given
-    token can reach is decided by the token's own type/scope (see
-    `crud.count_active_api_tokens`/the `service_tokens` feature gating *how
-    many* tokens or *what scope* a token can have in `routers/dashboard.py`),
-    not by this endpoint-level check.
+    Every admin can create any number of read-only API tokens — what a given
+    token can reach is decided by the token's own type/scope, not by this
+    endpoint-level check.
     """
     user = request.session.get(SESSION_KEY)
     if user:

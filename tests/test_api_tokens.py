@@ -1,51 +1,9 @@
 from __future__ import annotations
 
-import base64
-import json
-from datetime import datetime, timezone
-
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from httpx import AsyncClient
 
-from promhis import licensing as licensing_module
-from promhis.config import settings
-
 pytestmark = pytest.mark.asyncio
-
-
-@pytest.fixture
-def licensed_for_service_tokens(tmp_path, monkeypatch: pytest.MonkeyPatch):
-    """Not autouse — one free personal API token needs no license at all
-    (docs/licensing.md); only tests exercising the `service_tokens` feature
-    (more than one active token) need this.
-    """
-    private_key = Ed25519PrivateKey.generate()
-    public_b64 = base64.b64encode(
-        private_key.public_key().public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
-    ).decode()
-    monkeypatch.setattr(licensing_module, "PUBLIC_KEY_B64", public_b64)
-
-    payload = {
-        "customer": "Test Suite",
-        "issued_at": datetime.now(timezone.utc).isoformat(),
-        "expires_at": None,
-        "features": ["service_tokens"],
-        "max_users": None,
-    }
-    payload_bytes = json.dumps(payload).encode()
-    envelope = {
-        "payload": base64.b64encode(payload_bytes).decode(),
-        "signature": base64.b64encode(private_key.sign(payload_bytes)).decode(),
-    }
-    path = tmp_path / "license.json"
-    path.write_text(json.dumps(envelope))
-    monkeypatch.setattr(settings, "license_file", str(path))
-
-    licensing_module.refresh_license_status()
-    yield
-    licensing_module._cached_status.cache_clear()  # pyright: ignore[reportPrivateUsage]
 
 
 def _extract_new_token(page_html: str) -> str:
@@ -60,11 +18,7 @@ async def test_api_tokens_page_requires_login(client: AsyncClient) -> None:
     assert response.status_code == 303
 
 
-async def test_create_list_and_use_token(
-    authed_client: AsyncClient, anon_client: AsyncClient
-) -> None:
-    # One personal read-only token is free (docs/licensing.md) — no license
-    # needed for this, unlike the old "whole feature is Enterprise" model.
+async def test_create_list_and_use_token(authed_client: AsyncClient, anon_client: AsyncClient) -> None:
     create = await authed_client.post("/api-tokens", data={"name": "Grafana"})
     assert create.status_code == 303
 
@@ -110,22 +64,7 @@ async def test_revoked_token_rejected(authed_client: AsyncClient, anon_client: A
     assert via_token.status_code == 401
 
 
-async def test_second_token_blocked_on_free_tier(authed_client: AsyncClient) -> None:
-    first = await authed_client.post("/api-tokens", data={"name": "First"})
-    assert first.status_code == 303
-
-    second = await authed_client.post("/api-tokens", data={"name": "Second"})
-    assert second.status_code == 402
-
-    page = await authed_client.get("/api-tokens")
-    assert "service_tokens" in page.text
-    assert "First" in page.text
-    assert "Second" not in page.text
-
-
-async def test_second_token_allowed_with_service_tokens_license(
-    authed_client: AsyncClient, licensed_for_service_tokens: None
-) -> None:
+async def test_multiple_tokens_can_be_created(authed_client: AsyncClient) -> None:
     first = await authed_client.post("/api-tokens", data={"name": "First"})
     assert first.status_code == 303
 
@@ -135,16 +74,6 @@ async def test_second_token_allowed_with_service_tokens_license(
     page = await authed_client.get("/api-tokens")
     assert "First" in page.text
     assert "Second" in page.text
-
-
-async def test_revoking_frees_the_slot_back_up_on_free_tier(authed_client: AsyncClient) -> None:
-    await authed_client.post("/api-tokens", data={"name": "First"})
-    page = await authed_client.get("/api-tokens")
-    token_id = page.text.split('action="/api-tokens/')[1].split("/revoke")[0]
-    await authed_client.post(f"/api-tokens/{token_id}/revoke")
-
-    second = await authed_client.post("/api-tokens", data={"name": "Second"})
-    assert second.status_code == 303
 
 
 async def test_create_token_via_htmx_returns_panel_fragment(authed_client: AsyncClient) -> None:
@@ -172,9 +101,7 @@ async def test_revoke_token_via_htmx_returns_row_fragment(authed_client: AsyncCl
     assert "<nav" not in response.text
 
 
-async def test_audit_log_not_accessible_via_api_token(
-    authed_client: AsyncClient, anon_client: AsyncClient
-) -> None:
+async def test_audit_log_not_accessible_via_api_token(authed_client: AsyncClient, anon_client: AsyncClient) -> None:
     await authed_client.post("/api-tokens", data={"name": "Grafana"})
     page = await authed_client.get("/api-tokens")
     raw_token = _extract_new_token(page.text)

@@ -129,9 +129,6 @@ async def test_onboarding_checklist_shown_on_fresh_instance(authed_client: Async
     page = await authed_client.get("/")
     assert page.status_code == 200
     assert 'id="onboarding-checklist"' in page.text
-    # Free tier's one admin slot is always the bootstrap admin, so the
-    # teammate-invite step (a dead end without rbac) must not render.
-    assert "Invite a teammate" not in page.text
 
 
 async def test_onboarding_checklist_hidden_once_a_webhook_has_been_received(authed_client: AsyncClient) -> None:

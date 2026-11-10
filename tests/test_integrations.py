@@ -76,9 +76,8 @@ async def test_toggle_integration(authed_client: AsyncClient) -> None:
 
 
 async def test_update_integration_blank_keeps_existing_secret(authed_client: AsyncClient) -> None:
-    # Teams (not PagerDuty/Opsgenie, which are Enterprise-gated and not what
-    # this generic config-update behavior test is about) is just a
-    # convenient channel type with a secret field.
+    # Teams is just a convenient channel type with a secret field, chosen
+    # arbitrarily for this generic config-update behavior test.
     await authed_client.post(
         "/integrations", data={"channel_type": "teams", "cfg_teams_webhook_url": "https://teams.test/routing-key-0001"}
     )
@@ -101,8 +100,8 @@ async def test_update_integration_blank_keeps_existing_secret(authed_client: Asy
 
 
 async def test_delete_integration(authed_client: AsyncClient) -> None:
-    # Custom Webhook (not Opsgenie, which is Enterprise-gated and not what
-    # this generic delete-flow test is about) is just a convenient channel type.
+    # Custom Webhook is just a convenient channel type, chosen arbitrarily
+    # for this generic delete-flow test.
     await authed_client.post(
         "/integrations", data={"channel_type": "webhook", "cfg_webhook_webhook_url": "https://webhook.test/my-api-key"}
     )

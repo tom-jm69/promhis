@@ -9,7 +9,6 @@
   <p class="ack-note-text">No incident notes yet.</p>
   {% endif %}
 
-  {% if can_annotate %}
   <form hx-post="/alerts/{{ fingerprint }}/annotations" hx-target="#incident-notes-panel" hx-swap="outerHTML"
         hx-on:htmx:after-request="if(event.detail.successful) this.reset()"
         method="post" action="/alerts/{{ fingerprint }}/annotations">
@@ -19,7 +18,4 @@
     </div>
     <button class="btn" type="submit">Add note</button>
   </form>
-  {% else %}
-  <p class="ack-note-text">Incident notes require an <span class="sev-tag sev-none">annotations</span> license.</p>
-  {% endif %}
 </div>

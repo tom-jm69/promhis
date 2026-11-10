@@ -129,9 +129,8 @@ class NotificationIntegration(SQLModel, table=True):
 
 
 class AlertAnnotation(SQLModel, table=True):
-    """A postmortem/incident note on an alert (the `annotations` licensed
-    feature, ROADMAP.md §22/§23) — distinct from `Alert.ack_note` (a single,
-    overwritable "someone's looking at this" flag) and from the Alertmanager
+    """A postmortem/incident note on an alert — distinct from `Alert.ack_note`
+    (a single, overwritable "someone's looking at this" flag) and from the Alertmanager
     payload's own `Alert.annotations` dict (arbitrary labels Alertmanager
     sends us, rendered read-only on the detail page). This is an append-only
     list of timestamped notes a team leaves for a postmortem, one alert can
@@ -166,15 +165,14 @@ class AppSetting(SQLModel, table=True):
 
 
 class User(SQLModel, table=True):
-    """An admin dashboard account (ROADMAP.md §21).
+    """An admin dashboard account.
 
     `is_bootstrap` marks the single account mirrored from
     `PROMHIS_ADMIN_USER`/`PROMHIS_ADMIN_PASSWORD` at every startup (see
     `crud.sync_bootstrap_admin`) — it exists so an existing self-hosted
     install upgrading to this version keeps logging in exactly the same way
-    it always has, with zero config changes. The Free tier is hard-capped
-    at one admin user (the bootstrap account); the `rbac` feature licensed
-    can create more via the Admin Users page.
+    it always has, with zero config changes. Additional admins can be
+    created via the Admin Users page.
     """
 
     id: int | None = Field(default=None, primary_key=True)

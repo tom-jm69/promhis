@@ -2,9 +2,6 @@
 <div class="panel">
   <div class="panel-head"><h2>Add an admin</h2></div>
   <div class="panel-body">
-    {% if at_free_limit %}
-    <p class="ack-note-text">Free tier allows one admin user — an <span class="sev-tag sev-none">rbac</span> license unlocks more.</p>
-    {% else %}
     <form hx-post="/admin-users" hx-target="#admin-users-panel" hx-swap="outerHTML"
           hx-on:htmx:after-request="if(event.detail.successful) this.reset()"
           method="post" action="/admin-users" class="filter-bar inline-filter-bar">
@@ -12,7 +9,6 @@
       <input type="password" name="password" placeholder="Password" required>
       <button class="btn" type="submit">Create admin</button>
     </form>
-    {% endif %}
   </div>
 </div>
 
