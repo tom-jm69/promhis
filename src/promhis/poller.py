@@ -69,6 +69,10 @@ async def run_poller() -> None:
             try:
                 count = await poll_once(client)
                 logger.info("alertmanager poll: synced %d alerts", count)
-            except (httpx.HTTPError, KeyError) as exc:
-                logger.warning("alertmanager poll failed: %s", exc)
+            except Exception:
+                # Broad on purpose: this loop must never die from a bad
+                # response (malformed JSON, an unparseable alert, a transient
+                # DB error) — a permanently-dead poller is silent and only
+                # recoverable with a restart. Log and try again next cycle.
+                logger.exception("alertmanager poll failed")
             await asyncio.sleep(settings.alertmanager_poll_seconds)

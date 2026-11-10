@@ -101,5 +101,9 @@ async def run_digest_scheduler() -> None:
             subject, body = build_digest(events, window_hours=24)
             await send_digest(subject, body)
             logger.info("digest: sent to %s (%d events)", settings.digest_to, len(events))
-        except (smtplib.SMTPException, OSError) as exc:
-            logger.warning("digest: send failed: %s", exc)
+        except Exception:
+            # Broad on purpose: an SMTP failure, a transient DB error while
+            # building the digest, anything — this loop must never die
+            # permanently from one bad night, since the next chance to send
+            # is 24h away and a dead loop is otherwise silent until restart.
+            logger.exception("digest: send failed")

@@ -41,13 +41,19 @@ RETENTION_INTERVAL_SECONDS = 24 * 60 * 60
 async def _retention_loop() -> None:
     while True:
         await asyncio.sleep(RETENTION_INTERVAL_SECONDS)
-        async with async_session_factory() as session:
-            pruned = await crud.prune_old_events(session, retention_days=settings.retention_days)
-            if pruned:
-                logger.info("retention: pruned %d old alert events", pruned)
-            pruned_audit = await crud.prune_old_audit_entries(session, retention_days=settings.retention_days)
-            if pruned_audit:
-                logger.info("retention: pruned %d old audit log entries", pruned_audit)
+        try:
+            async with async_session_factory() as session:
+                pruned = await crud.prune_old_events(session, retention_days=settings.retention_days)
+                if pruned:
+                    logger.info("retention: pruned %d old alert events", pruned)
+                pruned_audit = await crud.prune_old_audit_entries(session, retention_days=settings.retention_days)
+                if pruned_audit:
+                    logger.info("retention: pruned %d old audit log entries", pruned_audit)
+        except Exception:
+            # Broad on purpose: a transient DB error here must not
+            # permanently kill retention for the rest of the process's
+            # life — log and try again next cycle (24h later).
+            logger.exception("retention: prune pass failed")
 
 
 @asynccontextmanager
