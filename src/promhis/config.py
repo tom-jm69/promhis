@@ -2,7 +2,28 @@
 
 from __future__ import annotations
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Annotated
+
+from pydantic import BeforeValidator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+
+def _split_csv(value: object) -> object:
+    """pydantic-settings treats a tuple-typed field as "complex" and tries
+    to JSON-decode its raw env-var string by default — a plain
+    comma-separated value like "a,b,c" isn't valid JSON, so without this
+    every one of these fields would crash `Settings()` at import time the
+    moment its env var was actually set (silently never caught by tests,
+    since nothing here exercises the real env-parsing path — see git
+    history). `NoDecode` below turns off that JSON-decode attempt; this
+    does the actual comma-splitting instead.
+    """
+    if isinstance(value, str):
+        return tuple(part.strip() for part in value.split(",") if part.strip())
+    return value
+
+
+CommaSeparatedTuple = Annotated[tuple[str, ...], NoDecode, BeforeValidator(_split_csv)]
 
 
 class Settings(BaseSettings):
@@ -21,7 +42,7 @@ class Settings(BaseSettings):
 
     # Optional: label used to identify the "node" an alert belongs to.
     # Falls back through this list, in order, until one is present.
-    node_labels: tuple[str, ...] = ("node", "instance", "hostname")
+    node_labels: CommaSeparatedTuple = ("node", "instance", "hostname")
 
     # Optional background sync against a live Alertmanager instance, used
     # as a backup/bootstrap to the webhook push (e.g. to pick up alerts
@@ -59,7 +80,7 @@ class Settings(BaseSettings):
     metrics_enabled: bool = True
     metrics_user: str | None = None
     metrics_password: str | None = None
-    metrics_allowed_ips: tuple[str, ...] = ()
+    metrics_allowed_ips: CommaSeparatedTuple = ()
 
     # Custom branding — replaces the flame-mark + "Promhis" wordmark in the
     # navbar/page title. Unset falls back to the stock defaults.
