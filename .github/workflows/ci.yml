@@ -43,7 +43,6 @@ jobs:
       - uses: helm/kind-action@v1
         with:
           cluster_name: promhis-ci
-          install_only: true
 
       - name: Lint chart
         run: helm lint deploy/helm/promhis -f deploy/helm/promhis/hack/test-values.yaml
