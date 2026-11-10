@@ -76,10 +76,16 @@ class DigestConfig:
 
 
 async def effective_digest_config(session: AsyncSession) -> DigestConfig | None:
-    """None means "not configured" — same meaning as the old
-    `if not settings.digest_to or not settings.smtp_host` guard, just
-    re-checked live instead of only at startup.
+    """None means "not configured or switched off" — same meaning as the
+    old `if not settings.digest_to or not settings.smtp_host` guard, plus
+    the explicit digest_enabled kill switch, all re-checked live instead of
+    only at startup.
     """
+    enabled = await effective_bool(
+        session, key="digest_enabled", env_var="PROMHIS_DIGEST_ENABLED", default=settings.digest_enabled
+    )
+    if not enabled:
+        return None
     to_addr = await effective_str(session, key="digest_to", env_var="PROMHIS_DIGEST_TO", default=None)
     smtp_host = await effective_str(session, key="smtp_host", env_var="PROMHIS_SMTP_HOST", default=None)
     if not to_addr or not smtp_host:

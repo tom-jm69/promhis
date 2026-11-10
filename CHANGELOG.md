@@ -10,10 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Optional scheduled database dumps (`pg_dump`), off by default — `PROMHIS_DB_DUMP_ENABLED`/`_PATH`/`_INTERVAL_HOURS`/`_MIN_FREE_MB`, also toggleable from the Settings page. A dump is skipped entirely (never started) if free disk space is below the configured floor.
 - Every daily-digest/SMTP setting (recipient, send hour, host/port/user/password/from/TLS) and the remaining database-dump settings (path, interval, minimum free space) are now also editable from the Settings page, not just env vars — same env-wins rule as `/metrics`.
+- `PROMHIS_DIGEST_TO` accepts multiple comma-separated recipient addresses.
+- An explicit `PROMHIS_DIGEST_ENABLED` toggle (also on the Settings page) for the daily digest, independent of whether a recipient/SMTP host happen to be set — defaults to on, so existing setups are unaffected.
+- The Settings page now hides a feature's detailed configuration fields (database dump, daily digest/SMTP) until its toggle is switched on.
 
 ### Changed
 
 - Multiple admin users, custom branding, and incident notes are now free and uncapped for everyone (no longer require a license).
+
+### Fixed
+
+- `PROMHIS_NODE_LABELS` and `PROMHIS_METRICS_ALLOWED_IPS` crashed the whole app at startup if actually set — both are documented as comma-separated values, but pydantic-settings tried to JSON-decode them. Fixed.
 
 ### Removed
 

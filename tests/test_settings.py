@@ -346,3 +346,43 @@ async def test_settings_digest_smtp_host_env_locked(
     page_after = await authed_client.get("/settings")
     assert "ignored.example.com" not in page_after.text
     assert "env-smtp.example.com" in page_after.text
+
+
+async def test_settings_digest_enabled_by_default_and_fields_visible(authed_client: AsyncClient) -> None:
+    page = await authed_client.get("/settings")
+    assert 'checked onchange="promhisToggleDigestEnabled(this)"' in page.text
+    assert 'id="digest-config-fields"' in page.text
+    assert 'id="digest-config-fields" class="field-divider" style="display:none;"' not in page.text
+
+
+async def test_settings_disabling_digest_hides_config_fields(authed_client: AsyncClient) -> None:
+    disabled = await authed_client.post("/settings/digest/enabled", data={})
+    assert disabled.status_code == 200
+    assert disabled.json() == {"enabled": False}
+
+    page = await authed_client.get("/settings")
+    assert 'checked onchange="promhisToggleDigestEnabled(this)"' not in page.text
+    assert 'id="digest-config-fields" class="field-divider" style="display:none;"' in page.text
+
+
+async def test_settings_digest_enabled_env_locked(
+    authed_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("PROMHIS_DIGEST_ENABLED", "false")
+    monkeypatch.setattr(settings, "digest_enabled", False)
+
+    page = await authed_client.get("/settings")
+    assert "PROMHIS_DIGEST_ENABLED" in page.text
+    assert 'onchange="promhisToggleDigestEnabled(this)"' not in page.text
+
+    locked = await authed_client.post("/settings/digest/enabled", data={"digest_enabled": "on"})
+    assert locked.status_code == 403
+
+
+async def test_settings_db_dump_config_fields_hidden_until_enabled(authed_client: AsyncClient) -> None:
+    page = await authed_client.get("/settings")
+    assert 'id="db-dump-config-fields" class="field-divider" style="display:none;"' in page.text
+
+    await authed_client.post("/settings/db-dump/enabled", data={"db_dump_enabled": "on"})
+    page_after = await authed_client.get("/settings")
+    assert 'id="db-dump-config-fields" class="field-divider" style="display:none;"' not in page_after.text

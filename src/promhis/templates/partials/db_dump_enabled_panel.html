@@ -20,6 +20,8 @@
   function promhisSyncDbDumpToggleUI(checkbox) {
     const label = checkbox.closest(".toggle-field").querySelector(".toggle-label");
     if (label) label.textContent = checkbox.checked ? "Enabled" : "Disabled";
+    const configFields = document.getElementById("db-dump-config-fields");
+    if (configFields) configFields.style.display = checkbox.checked ? "" : "none";
   }
 
   function promhisToggleDbDumpEnabled(checkbox) {

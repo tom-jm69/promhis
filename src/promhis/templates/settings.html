@@ -68,7 +68,7 @@
   <div class="panel-body">
     {% include "partials/db_dump_enabled_panel.html" %}
 
-    <div class="field-divider">
+    <div id="db-dump-config-fields" class="field-divider" {% if not db_dump_enabled %}style="display:none;"{% endif %}>
       <form method="post" action="/settings/db-dump/config">
         <div class="field">
           <label for="db_dump_path">Dump directory</label>
@@ -113,15 +113,19 @@
 <div class="panel">
   <div class="panel-head"><h2>Daily digest email</h2></div>
   <div class="panel-body">
-    <p class="ack-note-text">{% if digest_configured %}Sends a daily rollup to the address below.{% else %}Off until a recipient and an SMTP host are both set.{% endif %}</p>
+    {% include "partials/digest_enabled_panel.html" %}
+
+    <div id="digest-config-fields" class="field-divider" {% if not digest_enabled %}style="display:none;"{% endif %}>
+    <p class="ack-note-text">{% if digest_configured %}Sends a daily rollup to the address(es) below.{% else %}Off until a recipient and an SMTP host are both set.{% endif %}</p>
     <form method="post" action="/settings/digest/config">
       <div class="field">
-        <label for="digest_to">Recipient address</label>
+        <label for="digest_to">Recipient address(es)</label>
         {% if digest_to_locked %}
-        <input type="email" value="{{ digest_to or '' }}" disabled>
+        <input type="text" value="{{ digest_to or '' }}" disabled>
         <div class="hint">Set via <code>PROMHIS_DIGEST_TO</code> — edit <code>.env</code> to change.</div>
         {% else %}
-        <input type="email" id="digest_to" name="digest_to" value="{{ digest_to or '' }}" placeholder="unset (digest off)">
+        <input type="email" id="digest_to" name="digest_to" value="{{ digest_to or '' }}" multiple placeholder="unset (digest off) — comma-separated for multiple">
+        <div class="hint">Comma-separated for more than one recipient, e.g. <code>oncall@example.com, backup@example.com</code>.</div>
         {% endif %}
       </div>
 
@@ -207,6 +211,7 @@
       <button type="submit" class="btn">Save</button>
       {% endif %}
     </form>
+    </div>
   </div>
 </div>
 {% endblock %}

@@ -67,10 +67,15 @@ async def _settings_context(session: AsyncSession) -> dict:
             default=settings.db_dump_min_free_mb,
         ),
         "db_dump_min_free_mb_locked": setting_env_locked("PROMHIS_DB_DUMP_MIN_FREE_MB"),
-        # Digest/SMTP — "configured" means a recipient and an SMTP host are
-        # both set, same meaning digest.effective_digest_config uses to
-        # decide whether the scheduler actually sends anything.
+        # Digest/SMTP — "configured" means the digest_enabled switch is on
+        # *and* a recipient and SMTP host are both set, same meaning
+        # digest.effective_digest_config uses to decide whether the
+        # scheduler actually sends anything.
         "digest_configured": digest_configured,
+        "digest_enabled": await effective_bool(
+            session, key="digest_enabled", env_var="PROMHIS_DIGEST_ENABLED", default=settings.digest_enabled
+        ),
+        "digest_enabled_locked": setting_env_locked("PROMHIS_DIGEST_ENABLED"),
         "digest_to": await effective_str(session, key="digest_to", env_var="PROMHIS_DIGEST_TO", default=None),
         "digest_to_locked": setting_env_locked("PROMHIS_DIGEST_TO"),
         "digest_hour_utc": await effective_int(
@@ -194,6 +199,17 @@ async def update_db_dump_config(
     return RedirectResponse(url="/settings", status_code=303)
 
 
+@router.post("/settings/digest/enabled", response_model=None, dependencies=[Depends(require_login)])
+async def update_digest_enabled(
+    digest_enabled: str | None = Form(None),
+    session: AsyncSession = Depends(get_session),
+) -> JSONResponse:
+    if setting_env_locked("PROMHIS_DIGEST_ENABLED"):
+        raise HTTPException(status_code=403, detail="digest_enabled is set via PROMHIS_DIGEST_ENABLED")
+    await crud.set_app_setting(session, "digest_enabled", "true" if digest_enabled is not None else "false")
+    return JSONResponse({"enabled": digest_enabled is not None})
+
+
 @router.post("/settings/digest/config", response_model=None, dependencies=[Depends(require_login)])
 async def update_digest_config(
     digest_to: str = Form(""),
@@ -207,7 +223,11 @@ async def update_digest_config(
     session: AsyncSession = Depends(get_session),
 ) -> RedirectResponse:
     if not setting_env_locked("PROMHIS_DIGEST_TO"):
-        await crud.set_app_setting(session, "digest_to", digest_to.strip() or None)
+        # Multiple recipients: comma-separated, normalized to ", " —
+        # an email "To:" header accepts this natively, no further parsing
+        # needed anywhere else.
+        addrs = [part.strip() for part in digest_to.split(",") if part.strip()]
+        await crud.set_app_setting(session, "digest_to", ", ".join(addrs) or None)
     if not setting_env_locked("PROMHIS_DIGEST_HOUR_UTC"):
         await crud.set_app_setting(session, "digest_hour_utc", str(digest_hour_utc))
     if not setting_env_locked("PROMHIS_SMTP_HOST"):

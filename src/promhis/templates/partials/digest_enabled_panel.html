@@ -1,0 +1,42 @@
+<div class="field">
+  <label>Daily digest email</label>
+  <div class="toggle-field">
+    <label class="toggle-switch">
+      {% if digest_enabled_locked %}
+      <input type="checkbox" disabled {% if digest_enabled %}checked{% endif %}>
+      {% else %}
+      <input type="checkbox" {% if digest_enabled %}checked{% endif %} onchange="promhisToggleDigestEnabled(this)">
+      {% endif %}
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">{{ "Enabled" if digest_enabled else "Disabled" }}</span>
+  </div>
+  {% if digest_enabled_locked %}
+  <div class="hint">Set via <code>PROMHIS_DIGEST_ENABLED</code> — edit <code>.env</code> to change.</div>
+  {% else %}
+  <div class="hint">Off pauses the digest without clearing the recipient/SMTP settings below.</div>
+  {% endif %}
+</div>
+<script>
+  function promhisSyncDigestToggleUI(checkbox) {
+    const label = checkbox.closest(".toggle-field").querySelector(".toggle-label");
+    if (label) label.textContent = checkbox.checked ? "Enabled" : "Disabled";
+    const configFields = document.getElementById("digest-config-fields");
+    if (configFields) configFields.style.display = checkbox.checked ? "" : "none";
+  }
+
+  function promhisToggleDigestEnabled(checkbox) {
+    const next = checkbox.checked;
+    promhisSyncDigestToggleUI(checkbox);
+    fetch("/settings/digest/enabled", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: next ? "digest_enabled=on" : "",
+    }).then((r) => {
+      if (!r.ok) throw new Error("save failed");
+    }).catch(() => {
+      checkbox.checked = !next;
+      promhisSyncDigestToggleUI(checkbox);
+    });
+  }
+</script>

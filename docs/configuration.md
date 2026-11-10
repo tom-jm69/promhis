@@ -58,11 +58,12 @@ Slack/Discord/Teams/PagerDuty/Opsgenie/custom-webhook forwarding is configured i
 
 ## Daily digest email (optional)
 
-Opt-in — off entirely unless both `digest_to` and `smtp_host` are set. Complements, rather than replaces, the instant channels above.
+Opt-in — off unless `digest_enabled` is true (the default — see note below) *and* both `digest_to` and `smtp_host` are set. Complements, rather than replaces, the instant channels above.
 
 | Variable | Default | Notes |
 |---|---|---|
-| `PROMHIS_DIGEST_TO` | unset | Recipient address. Setting this (and `smtp_host`) is what turns the digest on at all. |
+| `PROMHIS_DIGEST_ENABLED` | `true` | A kill switch independent of the fields below — defaults to on (not off) specifically so an existing deployment that already has `digest_to`/`smtp_host` set keeps working unchanged; toggle it off from Settings to pause without clearing those. |
+| `PROMHIS_DIGEST_TO` | unset | Recipient address(es). Comma-separated for more than one, e.g. `oncall@example.com,backup@example.com`. Setting this (and `smtp_host`) is what actually turns sending on. |
 | `PROMHIS_DIGEST_HOUR_UTC` | `8` | Hour (UTC) the daily rollup is sent. |
 | `PROMHIS_SMTP_HOST` | unset | SMTP server hostname. |
 | `PROMHIS_SMTP_PORT` | `587` | SMTP server port. |

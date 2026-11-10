@@ -97,7 +97,15 @@ class Settings(BaseSettings):
     # NotificationIntegration table — not env vars. See docs/notifications.md.
 
     # Daily digest email — opt-in, complements (doesn't replace) the instant
-    # channels above. Off unless digest_to is set.
+    # channels above. Off unless digest_to and smtp_host are both set.
+    # digest_enabled defaults to True (not False, unlike db_dump_enabled)
+    # specifically so an existing deployment that already has digest_to/
+    # smtp_host set via env keeps working unchanged — this toggle is an
+    # independent kill switch layered on top, not a second requirement.
+    digest_enabled: bool = True
+    # Comma-separated for multiple recipients — a plain string, not parsed
+    # into a tuple, since its only consumer is an email "To:" header, which
+    # already accepts a comma-separated address list natively.
     digest_to: str | None = None
     digest_hour_utc: int = 8  # which hour, UTC, to send the daily rollup
     smtp_host: str | None = None
