@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
+from typing import cast
 
-from sqlalchemy import case, func
+from sqlalchemy import case, delete, func
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
@@ -367,12 +369,9 @@ async def prune_old_events(session: AsyncSession, *, retention_days: int) -> int
     if retention_days <= 0:
         return 0
     cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
-    query = select(AlertEvent).where(AlertEvent.received_at < cutoff)
-    old = (await session.execute(query)).scalars().all()
-    for e in old:
-        await session.delete(e)
+    result = await session.execute(delete(AlertEvent).where(col(AlertEvent.received_at) < cutoff))
     await session.commit()
-    return len(old)
+    return cast(CursorResult, result).rowcount
 
 
 async def record_audit_entry(
@@ -434,12 +433,9 @@ async def prune_old_audit_entries(session: AsyncSession, *, retention_days: int)
     if retention_days <= 0:
         return 0
     cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
-    query = select(AuditLogEntry).where(AuditLogEntry.received_at < cutoff)
-    old = (await session.execute(query)).scalars().all()
-    for e in old:
-        await session.delete(e)
+    result = await session.execute(delete(AuditLogEntry).where(col(AuditLogEntry.received_at) < cutoff))
     await session.commit()
-    return len(old)
+    return cast(CursorResult, result).rowcount
 
 
 async def last_successful_ingest(session: AsyncSession) -> datetime | None:
