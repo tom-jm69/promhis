@@ -4,6 +4,8 @@ This is the working plan for turning Promhis into something publishable: open so
 
 **Business-model pivot (2026-11-06):** earlier passes of this document planned a hosted/cloud offering on AWS (§3) alongside tiered cloud pricing (§9). That's cancelled — no managed/cloud offering, no AWS. The model is now open-core: publish on GitHub, Community edition free forever, Enterprise edition is the same image unlocked by a signed license file (§15). §3 and the original §9 pricing table are kept below for history but are no longer current — see §15 onward and `PRICING.md` for what actually shipped.
 
+**Licensing pivot (2026-11-10):** the open-core/licensing model built in §15/§19/§22/§23 (and the `rbac`-gated admin cap in §21) is reverted. This project stays fully FOSS (MIT) for now — every feature that was licensed (multiple admin users, custom branding, incident notes, more than one API token) is free and uncapped. `src/promhis/licensing.py`, `src/promhis/ee/`, `PRICING.md`, and `docs/licensing.md` were removed. A licensing/paid-tier model may be reintroduced later based on real user interest, not preemptively. §15/§19/§21–§24 are kept below for history only.
+
 ## Design principle: extensible by construction
 
 Explicit requirement: new integrations (notification channels today; conceivably other things later — e.g. alternate ingest sources, auth schemes) must be addable without touching core dispatch logic. Concretely:
@@ -187,7 +189,7 @@ Feedback (2026-11-05). Three distinct additions to the Integrations page (§13),
 - [x] **Label-based routing per integration.** `NotificationIntegration.routing_rules` (JSON list of `{"label": ..., "value": ...}`, ANDed, default `[]` = "every alert" — unaffected for anyone not using it). `notifications/registry.py`'s `build_registry()` now returns `(channel, routing_rules)` pairs instead of bare channels, and `routers/webhook.py`'s dispatch loop checks `matches_routing_rules(event.labels, rules)` per event per integration — so a single webhook delivery with multiple alerts routes each one independently. UI: a fixed 4-row label/value editor in each integration's existing Edit panel (deliberately not a dynamic add/remove list or expression language — ROADMAP's own "don't manufacture abstraction" principle), prefilled from the stored rules, always submitted as the full set on Save. Tested (`tests/test_integrations.py`, `tests/test_notifications.py`): a matching alert reaches the integration, a non-matching one doesn't, an unscoped integration still gets everything, two integrations with different rules route independently off the same alert, plus pure unit tests for `matches_routing_rules` itself. `docs/notifications.md` updated with a "Routing" section.
 - [x] Verified: `basedpyright` 0 errors; 69/69 tests passing on both SQLite and a real `postgres:16-alpine` container; manually exercised the whole flow (icon picker, add, edit, routing rule save confirmed via a direct DB read, test-send against a real external API) in a running `docker compose` container, not just unit tests.
 
-## 15. Licensed, self-hostable Enterprise edition — scoped and built (2026-11-06)
+## 15. Licensed, self-hostable Enterprise edition — REVERTED (2026-11-10), kept for history only
 
 Open-core: one codebase, published on GitHub, Apache-2.0. **Community edition** (today's free, unrestricted self-host) stays the default. **Enterprise edition** is the exact same image, unlocked by a signed license file — not a separate build, not a cloud/managed offering (see the pivot note at the top of this document).
 
@@ -272,7 +274,7 @@ Fixes:
 - [x] Tests: `tests/test_insights_module.py` trimmed to the two functions still pure (`mttr_weekly_trend`, `resolve_range`); `tests/test_insights.py` gained DB-backed coverage for the new SQL aggregations (day-splitting, severity normalization, node ranking, newest-first bounding) and the ledger's pagination (crud-level page/total correctness, htmx fragment response, pagination controls appearing only past `page_size`). 88/88 passing on both SQLite and a real `postgres:16-alpine` container — the cross-dialect SQL (`func.date()`, `case()`, `GROUP BY` on an expression) was exactly the kind of change this project's own prior incidents (§2's `NullPool` fix, §7's `col(func.count())` bug) warn needs real Postgres verification, not just SQLite; `basedpyright` 0 errors.
 - [x] Manually verified in a running container with real chart rendering (`/stats?range=all`, stacked bar + severity + MTTR charts, no console errors) and a real alert detail page (ledger renders, no pagination shown below the 50-event threshold).
 
-## 19. Custom branding for Enterprise customers — done
+## 19. Custom branding for Enterprise customers — REVERTED (2026-11-10): branding is free/unlicensed now, kept for history only
 
 Requested (2026-11-06), folded into the same Enterprise push as §15. Scope decisions:
 
@@ -329,7 +331,7 @@ Built:
 - [x] **Real perf bug caught and fixed**: the bootstrap password hash was being recomputed (full 600k-iteration PBKDF2) inside the `client` fixture on *every single test*, turning a ~2s suite into ~16s. Fixed by hashing it once at module import time in `conftest.py` and reusing the cached hash — remaining ~8-10s is real login-verification cost across the tests that actually log in, not waste.
 - [x] **Admin Users management UI** (`src/promhis/ee/admin_users.py`, `templates/admin_users.html` + partials): list/create/delete additional admins, `rbac`-gated past the first bootstrap admin (409 on duplicate username, 402 with `ADMIN_USER_LIMIT_MESSAGE` past the free cap, htmx row/panel swaps matching the API-tokens page pattern, no delete control ever rendered for the bootstrap row). Lives under `ee/` per §22's licensing-boundary restructure, not because the code is technically gated differently — see §22.
 
-## 22. Licensing model reconciliation — done (biggest revision in this document's history)
+## 22. Licensing model reconciliation — REVERTED (2026-11-10), kept for history only
 
 A detailed reference spec landed (2026-11-06, mid-build on §21) titled "Licensing: Free vs. Licensed Features" — a materially different, more precise model than what §15 had built: per-feature flags (`sso`/`rbac`/`audit_log`/`multi_source`/`analytics`/`reports`/`annotations`/`service_tokens`/`bulk_export`) instead of all-or-nothing, a `LicenseState` machine (free/active/grace/expired) instead of a boolean, and an explicit free-feature list that **directly contradicted** several things §15 had already shipped. Per standing practice ("check if it is not already implemented" before touching anything), this was audited against the actual repo state before any code changed — see below — and four real conflicts were surfaced and resolved via explicit question, not assumed.
 
@@ -373,7 +375,7 @@ Two further open questions the spec itself explicitly flagged ("ask before assum
 
 - Everything in the licensed-feature table that isn't `service_tokens`/`branding`/`rbac`/`annotations` yet: `sso`, `audit_log` (the new one), `multi_source`, `analytics` (the new deeper page), `reports`, `bulk_export` — all reserved flag names, no code behind them yet.
 
-## 23. Incident annotations (`annotations` licensed feature) — done
+## 23. Incident annotations — REVERTED (2026-11-10): incident notes are free/unlicensed now, kept for history only
 
 Next item off §22's "still open" list (2026-11-07). Postmortem notes on an alert, distinct from two existing, similarly-named things already in the codebase — checked for naming collisions before building, not after:
 
@@ -399,7 +401,7 @@ Built:
 - [x] Verified in a real running container (`docker run` against the built image, not `docker compose`'s shared dev instance which was already running on port 8000 — used 8001 instead to avoid disturbing it): clean startup, real login, real webhook ingest, the alert detail page's locked "Incident Notes" panel renders correctly over a real HTTP response, and a direct `POST .../annotations` on the free tier returns a real `402` from the running app, not just under the test ASGI transport.
 - [x] **Scope trim, disclosed**: did not round-trip an actual `annotations`-featured license through the real running container (the way §21/§22's rbac verification did) — doing that requires swapping `licensing.py`'s embedded `PUBLIC_KEY_B64` for a freshly generated throwaway keypair (the real signing private key is deliberately not in the repo, and the committed dev public key's matching private key isn't available either), which is a source edit + rebuild for marginal additional confidence: the licensed-create/delete code path is already exercised end-to-end (real DB, real SQL, real Jinja rendering, real htmx fragment responses) by the test suite against both SQLite and Postgres, and this feature adds no lifespan/background-task behavior that only a real `uvicorn` process would exercise (unlike e.g. §20's onboarding checklist or §15's digest scheduler, where that gap was the whole reason for the live-container step).
 
-## 24. Buyer-based open-core review (external market analysis, 2026-11-09)
+## 24. Buyer-based open-core review (external market analysis, 2026-11-09) — REVERTED (2026-11-10), kept for history only
 
 A detailed external market/pricing analysis landed (framed around GitLab's "buyer-based open core" model: free for what a solo engineer needs, licensed for what only a manager/security team/compliance officer needs) plus competitive-landscape notes (Karma, Grafana/OpenObserve, incident-management tools, the "pipe webhooks into Loki" DIY path as the real free-tier competitor). Audited against the already-decided model (§15/§22) the same way §22 itself was audited against §15 — adopt what's genuinely new and non-conflicting, surface what conflicts with an already-made decision rather than silently overriding it.
 

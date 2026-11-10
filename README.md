@@ -6,7 +6,7 @@
 
 A durable history and dashboard for [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/) alerts. Alertmanager itself forgets resolved alerts quickly; Promhis receives its webhook deliveries, logs every status transition permanently, and gives operators a searchable, per-node history of what fired, where, and when.
 
-Free and open source ([`LICENSE`](LICENSE), MIT) to self-host, forever — ingest, history, the dashboard, Postgres, and the existing Stats page are all free, uncapped, and never gated. A small set of team/org-scale features (more than one API token, multiple admin users, custom branding) unlock with a signed license on the same self-hosted image — see [`PRICING.md`](PRICING.md), [`docs/licensing.md`](docs/licensing.md), and the [marketing site](https://github.com/tom-jm69/promhis/tree/main/website).
+Free and open source ([`LICENSE`](LICENSE), MIT) to self-host, forever — every feature (ingest, history, the dashboard, Postgres, Stats, multiple admin users, custom branding, API tokens) is free and uncapped.
 
 See [`PRODUCT.md`](PRODUCT.md) for the product's intent and [`DESIGN.md`](DESIGN.md) for the dashboard's visual system (the Alertmanager-console look — dark navbar, flame-orange accent, flat Bootstrap-era chrome).
 
@@ -57,13 +57,11 @@ See `CONTRIBUTING.md` for PR expectations.
 - [`docs/configuration.md`](docs/configuration.md) — full `PROMHIS_*` env var reference.
 - [`docs/notifications.md`](docs/notifications.md) — outbound Slack/Discord/Teams/PagerDuty/Opsgenie/webhook forwarding.
 - [`docs/security-and-auditing.md`](docs/security-and-auditing.md) — webhook auth schemes and the audit log.
-- [`docs/licensing.md`](docs/licensing.md) — free vs. licensed features, what's gated, how license verification works.
 - [`docs/api.md`](docs/api.md) — REST API reference; interactive docs at `/docs` on a running instance.
 
 ## Project
 
-- [`PRICING.md`](PRICING.md) — free vs. licensed features.
 - [`website/index.html`](website/index.html) — the marketing site (open `website/index.html` directly in a browser, or serve the repo root as static files).
-- [`LICENSE`](LICENSE) — MIT (everything except `src/promhis/ee/`, separately licensed — see `src/promhis/ee/LICENSE`, `docs/licensing.md`).
+- [`LICENSE`](LICENSE) — MIT.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — dev setup, PR expectations.
 - [`ROADMAP.md`](ROADMAP.md) — what's shipped and what's next.

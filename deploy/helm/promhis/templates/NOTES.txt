@@ -46,13 +46,6 @@ no database was created by this chart.
           password: <the admin password printed above>
       {{- end }}
 
-{{- if not (or .Values.license.content .Values.license.existingSecret) }}
-
-No Enterprise license configured — running on the Free tier (unlimited
-history, Postgres, the Stats page, and everything else that makes the
-product work; see PRICING.md for what a license additionally unlocks).
-{{- end }}
-
 {{- if eq .Values.image.repository "ghcr.io/tom-jm69/promhis" }}
 
 NOTE: you're using the default image.repository, which only resolves to a

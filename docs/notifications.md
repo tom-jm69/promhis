@@ -50,15 +50,11 @@ Promhis creates an alert (aliased to the fingerprint) on firing and closes that 
 
 **Field:** Webhook URL — your own endpoint.
 
-Posts the raw alert event as JSON (fingerprint, alertname, status, severity, node, labels, annotations, timestamps, receiver) — no service-specific formatting. For piping into your own tooling. **Business tier and up on the cloud offering** (see `PRICING.md`); unrestricted on self-host.
+Posts the raw alert event as JSON (fingerprint, alertname, status, severity, node, labels, annotations, timestamps, receiver) — no service-specific formatting. For piping into your own tooling.
 
 ## Linking back to Promhis
 
 Set `PROMHIS_PUBLIC_BASE_URL` (e.g. `https://promhis.example.com`) to have Slack/Discord/Teams/PagerDuty/Opsgenie notifications include a link back to that alert's page in your Promhis dashboard. Omitted entirely when unset. (This one setting stays an env var — it describes the instance itself, not a specific integration.)
-
-## Which tiers get which channels
-
-See `PRICING.md` for the full breakdown — in short: Starter has no outbound forwarding, Team adds Slack/Discord/Teams, Business adds PagerDuty/Opsgenie/the generic webhook. Self-hosted has everything, unrestricted (the tier gating only applies to the cloud offering, and even there it's a published tier definition, not a technically enforced limit today — see the roadmap's non-goals).
 
 ## Extending with a new channel
 

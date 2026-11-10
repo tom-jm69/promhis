@@ -52,7 +52,7 @@ database:
 
 ## Secrets: bring your own, or let the chart create them
 
-By default the chart creates one `Secret` (named after the release) holding whatever of `admin.password`, `sessionSecret.value`, `webhook.token`, `metrics.password`, `database.url`, `license.content`, and `digest.smtp.password` you set directly in values — convenient for a quick install, but those values land in `helm get values`/your values file in plaintext. For anything beyond a demo, create your own `Secret`s out of band and point the matching `existingSecret` (+ `existingSecretKey`) field at them instead; the chart never creates a key the corresponding `existingSecret` is already covering. The bundled Postgres's own password lives in a second, separate `Secret` (`<release>-postgres`) for the same reason — only relevant while `postgresql.enabled` is true.
+By default the chart creates one `Secret` (named after the release) holding whatever of `admin.password`, `sessionSecret.value`, `webhook.token`, `metrics.password`, `database.url`, and `digest.smtp.password` you set directly in values — convenient for a quick install, but those values land in `helm get values`/your values file in plaintext. For anything beyond a demo, create your own `Secret`s out of band and point the matching `existingSecret` (+ `existingSecretKey`) field at them instead; the chart never creates a key the corresponding `existingSecret` is already covering. The bundled Postgres's own password lives in a second, separate `Secret` (`<release>-postgres`) for the same reason — only relevant while `postgresql.enabled` is true.
 
 `admin.password` and `sessionSecret.value` (or their `existingSecret` equivalents) are the only two the chart actually requires — it refuses to install with neither set.
 
@@ -79,10 +79,6 @@ ingress:
 trustProxy: true # ingress-nginx sits in front now — honor its X-Forwarded-* headers
 publicBaseUrl: "https://promhis.example.com"
 ```
-
-## Enterprise license
-
-Set `license.content` to the raw JSON of a signed license file (see the main repo's [`docs/licensing.md`](../../../docs/licensing.md)), or `license.existingSecret`/`license.existingSecretKey` to mount one you've already created as a Secret. Either way it's mounted read-only at `/etc/promhis/license.json` and `PROMHIS_LICENSE_FILE` is set to match automatically.
 
 ## Scraping Promhis's own `/metrics`
 

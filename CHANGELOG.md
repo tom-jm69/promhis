@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- Multiple admin users, custom branding, and incident notes are now free and uncapped for everyone (no longer require a license).
+
+### Removed
+
+- The signed-license feature-gating system (`src/promhis/licensing.py`, `src/promhis/ee/`, `PRICING.md`, `docs/licensing.md`). This project is fully FOSS (MIT) for now; a licensing model may return later based on real user interest.
+
 ## [0.1.0] - 2026-11-10
 
 Initial release.

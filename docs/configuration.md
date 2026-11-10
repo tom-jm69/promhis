@@ -70,16 +70,14 @@ Opt-in — off entirely unless both `digest_to` and `smtp_host` are set. Complem
 | `PROMHIS_SMTP_FROM` | `promhis@localhost` | `From:` address on the digest email. |
 | `PROMHIS_SMTP_USE_TLS` | `true` | STARTTLS on connect. |
 
-## Licensing
+## Branding
 
 | Variable | Default | Notes |
 |---|---|---|
-| `PROMHIS_LICENSE_FILE` | unset | Path to a signed license file. Unset or invalid means the Free tier — every licensed feature (see `PRICING.md`'s feature table) is hidden/disabled, everything else is unaffected. See `licensing.md`. |
-| `PROMHIS_BRAND_NAME` | `Promhis` | Custom instance name shown in the navbar and page `<title>` — requires the `branding` feature licensed, ignored entirely without one. |
-| `PROMHIS_BRAND_LOGO_PATH` | unset | Path to a logo image file (mounted into the container) served at `/brand/logo` and shown in the navbar in place of the flame mark — requires the `branding` feature licensed, ignored entirely without one. |
+| `PROMHIS_BRAND_NAME` | `Promhis` | Custom instance name shown in the navbar and page `<title>`. |
+| `PROMHIS_BRAND_LOGO_PATH` | unset | Path to a logo image file (mounted into the container) served at `/brand/logo` and shown in the navbar in place of the flame mark. |
 
 ## See also
 
 - `security-and-auditing.md` — the webhook auth schemes and audit log in detail.
 - `notifications.md` — configuring outbound channels via the Integrations page.
-- `licensing.md` — Free vs. licensed features, what's gated, how license verification works.

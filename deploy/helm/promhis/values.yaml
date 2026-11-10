@@ -174,8 +174,6 @@ metrics:
     interval: 30s
     labels: {}
 
-# -- Requires the `branding` licensed feature (see PRICING.md) — ignored
-# entirely on an unlicensed/Free install.
 branding:
   name: ""
   # logoPath points at a path *inside the container*; mount it yourself
@@ -185,15 +183,6 @@ branding:
 # -- Base URL this instance is reachable at, used only to build "view in
 # Promhis" links in outbound notifications.
 publicBaseUrl: ""
-
-# -- An Enterprise license file (see docs/licensing.md). Provide the raw
-# JSON content directly, or reference an existing Secret you've created
-# out of band (recommended — a license file is not a secret-secret, but
-# treat it like config you don't want in `helm get values` history).
-license:
-  content: ""
-  existingSecret: ""
-  existingSecretKey: "license.json"
 
 # -- Daily digest email (opt-in; unset digestTo leaves it off entirely).
 digest:

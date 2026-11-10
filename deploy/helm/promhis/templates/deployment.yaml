@@ -137,10 +137,6 @@ spec:
             - name: PROMHIS_METRICS_ALLOWED_IPS
               value: {{ .Values.metrics.allowedIPs | quote }}
             {{- end }}
-            {{- if or .Values.license.content .Values.license.existingSecret }}
-            - name: PROMHIS_LICENSE_FILE
-              value: /etc/promhis/license.json
-            {{- end }}
             {{- if .Values.branding.name }}
             - name: PROMHIS_BRAND_NAME
               value: {{ .Values.branding.name | quote }}
@@ -188,11 +184,6 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            {{- if or .Values.license.content .Values.license.existingSecret }}
-            - name: license
-              mountPath: /etc/promhis
-              readOnly: true
-            {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -201,14 +192,6 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-        {{- if or .Values.license.content .Values.license.existingSecret }}
-        - name: license
-          secret:
-            secretName: {{ .Values.license.existingSecret | default (include "promhis.fullname" .) }}
-            items:
-              - key: {{ ternary .Values.license.existingSecretKey "license.json" (ne .Values.license.existingSecret "") }}
-                path: license.json
-        {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

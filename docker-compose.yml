@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
     # `env_file` passes through every PROMHIS_* setting in .env (database
-    # URL, licensing, branding, notifications, digest, etc.) without having
+    # URL, branding, notifications, digest, etc.) without having
     # to enumerate each one here — `environment:` below only needs the two
     # that must be validated (fail loudly if unset) or given a container-side
     # default; it takes precedence over env_file for those specific keys.
