@@ -672,7 +672,7 @@ main {
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
 
 .toggle-label { font-size: 12.5px; color: var(--text-muted); }
-.field input, .field select {
+.field input:not([type="checkbox"]) {
   width: 100%;
   background: var(--bg);
   border: 1px solid #ccc;
@@ -683,9 +683,19 @@ main {
   border-radius: var(--radius);
   outline: none;
 }
-.field input, .field select { transition: border-color 0.12s ease; }
-.field input:focus, .field select:focus { border-color: var(--blue); }
+.field input:not([type="checkbox"]) { transition: border-color 0.12s ease; }
+.field input:not([type="checkbox"]):focus { border-color: var(--blue); }
 .field input.field-invalid { border-color: var(--red); }
+
+/* A boolean sub-setting nested inside a feature's own config form — not
+   the page's master enable/disable switch (.toggle-switch is reserved for
+   those). A native checkbox is the period-correct Bootstrap-3-era control
+   for a single form boolean; accent-color is the one-line way to tint it
+   with the system's single brand accent instead of the browser default
+   blue, without inventing a new widget. */
+.field-checkbox { width: 17px; height: 17px; margin: 0; accent-color: var(--orange); cursor: pointer; }
+.field-checkbox:disabled { cursor: not-allowed; opacity: 0.6; }
+.field-checkbox:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
 /* ------------------------------------------------------- integrations */
 

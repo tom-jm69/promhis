@@ -402,14 +402,12 @@ async def _digest_config_data(**overrides: str) -> dict:
     return base
 
 
-async def test_settings_smtp_use_tls_select_persists_on_and_off(authed_client: AsyncClient) -> None:
-    # A <select> always submits a value, even for "Off" (value=""), unlike
-    # a checkbox which submits nothing when unchecked — regression test for
-    # a bug where the route checked "is not None" and treated "Off" as "on".
+async def test_settings_smtp_use_tls_checkbox_persists_checked_and_unchecked(authed_client: AsyncClient) -> None:
     await authed_client.post("/settings/digest/config", data=await _digest_config_data(smtp_use_tls="on"))
     page_on = await authed_client.get("/settings")
-    assert '<option value="on" selected>On</option>' in page_on.text
+    assert 'id="smtp_use_tls" name="smtp_use_tls" class="field-checkbox" checked' in page_on.text
 
-    await authed_client.post("/settings/digest/config", data=await _digest_config_data(smtp_use_tls=""))
+    # Unchecked checkbox submits no field at all — omitted from the data dict.
+    await authed_client.post("/settings/digest/config", data=await _digest_config_data())
     page_off = await authed_client.get("/settings")
-    assert '<option value="" selected>Off</option>' in page_off.text
+    assert 'id="smtp_use_tls" name="smtp_use_tls" class="field-checkbox" checked' not in page_off.text
