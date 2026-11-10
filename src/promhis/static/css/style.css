@@ -74,6 +74,14 @@
 
 * { box-sizing: border-box; }
 
+html {
+  /* Reserves the scrollbar's width always, present or not — otherwise
+     switching between a tall page (scrollbar shown) and a short one
+     (scrollbar hidden) shifts the whole layout by the scrollbar's width,
+     most visible mid-htmx-swap when the content briefly changes height. */
+  scrollbar-gutter: stable;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
