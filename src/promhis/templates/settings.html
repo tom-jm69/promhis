@@ -194,14 +194,18 @@
       </div>
 
       <div class="field">
-        <label>
-          {% if smtp_use_tls_locked %}
-          <input type="checkbox" disabled {% if smtp_use_tls %}checked{% endif %}>
-          {% else %}
-          <input type="checkbox" name="smtp_use_tls" {% if smtp_use_tls %}checked{% endif %}>
-          {% endif %}
-          Use STARTTLS
-        </label>
+        <label>Use STARTTLS</label>
+        <div class="toggle-field">
+          <label class="toggle-switch">
+            {% if smtp_use_tls_locked %}
+            <input type="checkbox" disabled {% if smtp_use_tls %}checked{% endif %}>
+            {% else %}
+            <input type="checkbox" name="smtp_use_tls" {% if smtp_use_tls %}checked{% endif %}>
+            {% endif %}
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">{{ "On" if smtp_use_tls else "Off" }}</span>
+        </div>
         {% if smtp_use_tls_locked %}
         <div class="hint">Set via <code>PROMHIS_SMTP_USE_TLS</code> — edit <code>.env</code> to change.</div>
         {% endif %}
