@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Overview — Promhis{% endblock %}
 {% block content %}
-<script id="stats-data" type="application/json">{{ stats_json | safe }}</script>
+<script id="stats-data" type="application/json">{{ stats_json | scriptjson }}</script>
 
 <div class="page-head">
   <div>

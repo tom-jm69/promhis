@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import json
 import math
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from fastapi.templating import Jinja2Templates
+from markupsafe import Markup
 
 from promhis.config import settings
 from promhis.licensing import has_feature
@@ -99,11 +102,24 @@ def severity_class(severity: str | None) -> str:
     return "sev-none"
 
 
+def script_json(value: Any) -> Markup:
+    """Serialize `value` for embedding inside a `<script>` tag.
+
+    Plain `json.dumps` doesn't escape `<`/`>`/`&`, so attacker-controlled
+    strings (e.g. an alert's `severity` label) containing `</script>` would
+    otherwise break out of the tag and execute as markup.
+    """
+    return Markup(
+        json.dumps(value).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    )
+
+
 templates.env.filters["timeago"] = timeago
 templates.env.filters["duration"] = duration
 templates.env.filters["secondsduration"] = seconds_to_duration
 templates.env.filters["durationpct"] = duration_pct
 templates.env.filters["sevclass"] = severity_class
+templates.env.filters["scriptjson"] = script_json
 templates.env.globals["brand_name"] = brand_name
 templates.env.globals["brand_logo_url"] = brand_logo_url
 templates.env.globals["has_feature"] = has_feature

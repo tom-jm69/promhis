@@ -100,7 +100,7 @@ async def overview(request: Request, session: AsyncSession = Depends(get_session
         "index.html",
         {
             "stats": stats,
-            "stats_json": stats.model_dump_json(),
+            "stats_json": stats.model_dump(),
             "recent": recent,
             "last_ingest": last_ingest,
             "ingest_stale": ingest_stale,

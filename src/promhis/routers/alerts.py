@@ -21,6 +21,16 @@ router = APIRouter(prefix="/api/v1/alerts", tags=["alerts"], dependencies=[Depen
 # gets close to this.
 EXPORT_ROW_LIMIT = 50_000
 
+# Alertmanager labels (alertname, node, receiver, group_key) are free text an
+# attacker with webhook credentials fully controls. A value starting with one
+# of these characters is interpreted as a formula by Excel/Sheets/LibreOffice
+# when the exported CSV is opened — prefix with a quote to force text.
+_CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: str) -> str:
+    return f"'{value}" if value.startswith(_CSV_FORMULA_PREFIXES) else value
+
 CSV_COLUMNS = [
     "fingerprint",
     "alertname",
@@ -70,14 +80,14 @@ async def api_export_alerts_csv(
         writer.writerow(
             [
                 a.fingerprint,
-                a.alertname,
+                _csv_safe(a.alertname),
                 a.status,
-                a.severity or "",
-                a.node or "",
+                _csv_safe(a.severity or ""),
+                _csv_safe(a.node or ""),
                 a.starts_at.isoformat(),
                 a.ends_at.isoformat() if a.ends_at else "",
-                a.receiver or "",
-                a.group_key or "",
+                _csv_safe(a.receiver or ""),
+                _csv_safe(a.group_key or ""),
                 a.first_seen.isoformat(),
                 a.last_seen.isoformat(),
             ]
