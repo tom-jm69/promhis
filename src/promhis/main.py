@@ -6,8 +6,9 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
 
@@ -29,6 +30,7 @@ from promhis.routers import (
     stats,
     webhook,
 )
+from promhis.templating import templates
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("promhis")
@@ -94,6 +96,37 @@ def create_app() -> FastAPI:
     app.include_router(dashboard.router)
     app.include_router(admin_users.router)
     app.include_router(incident_notes.router)
+
+    @app.exception_handler(SQLAlchemyError)
+    async def _database_error_handler(request: Request, exc: SQLAlchemyError):
+        # Distinguished from a generic 500 so an operator (or Alertmanager,
+        # retrying a webhook delivery) can tell "we're down because the
+        # database is unreachable" apart from "there's a bug" — both land
+        # here via the ORM/driver's shared exception base.
+        logger.exception("database error handling %s %s", request.method, request.url.path)
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(status_code=503, content={"error": "database_unavailable"})
+        return templates.TemplateResponse(
+            request,
+            "error.html",
+            {"title": "Database unavailable", "message": "Promhis couldn't reach the database. Try again shortly."},
+            status_code=503,
+        )
+
+    @app.exception_handler(Exception)
+    async def _unhandled_error_handler(request: Request, exc: Exception):
+        # Last-resort catch-all — logs the full traceback (the default
+        # production response otherwise swallows it) and still returns a
+        # branded page for dashboard routes instead of a bare text response.
+        logger.exception("unhandled error handling %s %s", request.method, request.url.path)
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(status_code=500, content={"error": "internal_error"})
+        return templates.TemplateResponse(
+            request,
+            "error.html",
+            {"title": "Something went wrong", "message": "An unexpected error occurred. It's been logged."},
+            status_code=500,
+        )
 
     @app.get("/healthz", tags=["meta"])
     async def healthz() -> dict[str, str]:

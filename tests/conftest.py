@@ -132,6 +132,23 @@ async def anon_client() -> AsyncIterator[AsyncClient]:
         yield ac
 
 
+@pytest_asyncio.fixture
+async def authed_client_no_raise(client: AsyncClient) -> AsyncClient:
+    """Same login as `authed_client`, but on a transport that doesn't
+    re-raise an exception the app's own error-handling middleware already
+    turned into a response (`ASGITransport`'s default `raise_app_exceptions`
+    re-raises regardless — see Starlette's `ServerErrorMiddleware`, which
+    always re-raises after sending its response so a real ASGI server can
+    log it). Only tests exercising the error-page/handler behavior itself
+    need this; every other test wants a raised exception to fail loudly.
+    """
+    transport = ASGITransport(app=app, raise_app_exceptions=False)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        response = await ac.post("/login", data={"username": "testadmin", "password": "testpass", "next": "/"})
+        assert response.status_code == 303
+        yield ac
+
+
 @pytest.fixture
 def webhook_auth() -> tuple[str, str]:
     return ("testadmin", "testpass")

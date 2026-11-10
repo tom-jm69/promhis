@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Promhis{% endblock %}
+{% block content %}
+<div class="login-wrap">
+  <div class="login-panel">
+    <div class="login-brand">PROMHIS</div>
+    <div class="login-sub">{{ title }}</div>
+    <div class="empty-state">
+      <div class="glyph">—</div>
+      <p>{{ message }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
