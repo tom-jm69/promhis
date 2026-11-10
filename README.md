@@ -1,10 +1,14 @@
 # Promhis — Alarm Register
 
+[![CI](https://github.com/tom-jm69/promhis/actions/workflows/ci.yml/badge.svg)](https://github.com/tom-jm69/promhis/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Docker Image](https://img.shields.io/badge/ghcr.io-promhis-blue?logo=docker)](https://github.com/tom-jm69/promhis/pkgs/container/promhis)
+
 A durable history and dashboard for [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/) alerts. Alertmanager itself forgets resolved alerts quickly; Promhis receives its webhook deliveries, logs every status transition permanently, and gives operators a searchable, per-node history of what fired, where, and when.
 
 Free and open source ([`LICENSE`](LICENSE), MIT) to self-host, forever — ingest, history, the dashboard, Postgres, and the existing Stats page are all free, uncapped, and never gated. A small set of team/org-scale features (more than one API token, multiple admin users, custom branding) unlock with a signed license on the same self-hosted image — see [`PRICING.md`](PRICING.md), [`docs/licensing.md`](docs/licensing.md), and the [marketing site](https://github.com/tom-jm69/promhis/tree/main/website).
 
-See [`PRODUCT.md`](PRODUCT.md) for the product's intent and [`DESIGN.md`](DESIGN.md) for the dashboard's visual system ("the fire-alarm telegraph annunciator" — every alert is a numbered flap that drops when it fires and latches when it's resolved).
+See [`PRODUCT.md`](PRODUCT.md) for the product's intent and [`DESIGN.md`](DESIGN.md) for the dashboard's visual system (the Alertmanager-console look — dark navbar, flame-orange accent, flat Bootstrap-era chrome).
 
 ## Stack
 

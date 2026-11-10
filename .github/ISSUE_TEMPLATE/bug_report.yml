@@ -1,0 +1,30 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal Alertmanager webhook payload or config if relevant.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Promhis version/image tag
+      placeholder: ghcr.io/tom-jm69/promhis:latest or a commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: shell
