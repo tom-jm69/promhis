@@ -5,7 +5,7 @@ Thanks for considering a contribution. This project runs its entire dev loop thr
 ## Dev setup
 
 ```bash
-git clone <this repo>
+git clone https://github.com/tom-jm69
 cd promhis
 cp .env.example .env   # fill in a real PROMHIS_ADMIN_PASSWORD and PROMHIS_SESSION_SECRET
 docker compose up --build

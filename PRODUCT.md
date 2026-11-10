@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Python FastAPI backend, server-rendered Jinja2 templates (no SPA/build step), SQLModel over Postgres for storage (SQLite was dropped — not a fit for this append-only, concurrently-written event log). FastAPI was user-specified directly in the build request ("python app... equipped with a fastapi"), not delegated.
+Python FastAPI backend, server-rendered Jinja2 templates (no SPA/build step), SQLModel over Postgres for storage.
 
 ## Users
 

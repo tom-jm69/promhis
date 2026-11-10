@@ -34,7 +34,7 @@ Every setting is an environment variable (`PROMHIS_*`) or a line in `.env`. See 
 
 ## Storage
 
-Postgres (via `asyncpg`) is the only supported storage — SQLite was dropped (it isn't a fit for this append-only, concurrently-written event log). `docker-compose.yml` bundles a `postgres:16-alpine` container by default; point `PROMHIS_DATABASE_URL` at your own instance instead if you'd rather not run it (comment out the `postgres` service too, then).
+Postgres (via `asyncpg`) is the only supported storage. `docker-compose.yml` bundles a `postgres:16-alpine` container by default; point `PROMHIS_DATABASE_URL` at your own instance instead if you'd rather not run it (comment out the `postgres` service too, then).
 
 ## Upgrading
 

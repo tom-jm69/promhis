@@ -10,7 +10,7 @@ See [`PRODUCT.md`](PRODUCT.md) for the product's intent and [`DESIGN.md`](DESIGN
 
 - **Backend:** FastAPI, fully async (async SQLAlchemy/SQLModel over `asyncpg`).
 - **Frontend:** server-rendered Jinja2 templates, htmx for partial refresh/filtering, Chart.js for the overview charts — no build step, no npm.
-- **Storage:** Postgres only (`docker-compose.yml` bundles one by default; SQLite was dropped — not a fit for this append-only, concurrently-written event log).
+- **Storage:** Postgres only (`docker-compose.yml` bundles one by default).
 
 ## Running it
 

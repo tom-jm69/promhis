@@ -9,9 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="PROMHIS_", env_file=".env", extra="ignore")
 
     app_title: str = "Promhis — Alertmanager History"
-    # Postgres only — SQLite isn't a fit for this append-only, concurrently-
-    # written event log (ROADMAP.md's decision to drop it). This default
-    # matches docker-compose.yml's bundled `postgres` service for local/dev
+    # Matches docker-compose.yml's bundled `postgres` service for local/dev
     # use; set a real PROMHIS_DATABASE_URL for anything else.
     database_url: str = "postgresql+asyncpg://promhis:promhis@localhost:5432/promhis"
 

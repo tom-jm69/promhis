@@ -7,7 +7,7 @@ related_targets: []
 
 ## Direction contract
 
-THESIS: A clean, confident open-source devtool landing page in the mold of astro.build — centered gradient-glow hero, bold white headline, pill CTAs, equal feature cards — with one signature piece of real, library-driven motion (an anime.js-powered radar dial standing in for "always watching your alerts") instead of static decoration; refuses the earlier bespoke neon split-flap world the user explicitly rejected ("looks like ass") in favor of a named, concrete reference.
+THESIS: A clean, confident open-source devtool landing page in the mold of astro.build — centered gradient-glow hero, bold white headline, pill CTAs, equal feature cards — with one signature piece of real, library-driven motion (an anime.js-powered radar dial standing in for "always watching your alerts") instead of static decoration; refuses the earlier bespoke neon split-flap world ("looks like ass") in favor of a named, concrete reference.
 
 OWN-WORLD: Near-black ground (`#0a0a0d`) with a soft multi-hue radial glow (flame-orange / violet / pink) behind the hero only; flame-orange (`#ff5d1f`) as the single brand accent on buttons, links, and the CTA band; Inter for all type (brief-pinned to match the named astro.build reference, overriding the "overused font" default-avoidance guidance — disclosed, not an oversight); 14px-bordered dark cards (`--color-panel` on `--color-line`) with pill buttons and pill badges throughout.
 
