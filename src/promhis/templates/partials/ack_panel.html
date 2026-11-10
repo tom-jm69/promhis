@@ -1,0 +1,15 @@
+<div id="ack-panel">
+  {% if alert.ack_note %}
+  <div class="kv-row"><span class="k">By</span><span class="v">{{ alert.ack_by }}, {{ alert.ack_at|timeago }}</span></div>
+  <p class="ack-note-text">{{ alert.ack_note }}</p>
+  {% endif %}
+  <form hx-post="/alerts/{{ alert.fingerprint }}/ack" hx-target="#ack-panel" hx-swap="outerHTML"
+        method="post" action="/alerts/{{ alert.fingerprint }}/ack">
+    <div class="field">
+      <label for="ack-note">{{ "Update note" if alert.ack_note else "Acknowledge — leave a note for your team" }}</label>
+      <textarea id="ack-note" name="note" rows="2" class="ack-textarea">{{ alert.ack_note or "" }}</textarea>
+    </div>
+    <button class="btn" type="submit">{{ "Save" if alert.ack_note else "Acknowledge" }}</button>
+    {% if alert.ack_note %}<button class="btn ghost" type="submit" name="note" value="" formnovalidate>Clear</button>{% endif %}
+  </form>
+</div>

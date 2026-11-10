@@ -1,0 +1,22 @@
+<tr class="row-link" onclick="window.location='/alerts/{{ alert.fingerprint }}'">
+  <td>
+    <span class="flap state-{{ alert.status }}"><span class="chip"></span>{{ alert.status }}</span>
+  </td>
+  <td class="strong">
+    {{ alert.alertname }}
+    {% if alert.annotations.get("runbook_url") %}
+    <a href="{{ alert.annotations.get('runbook_url') }}" target="_blank" rel="noopener" title="Runbook" class="runbook-icon" onclick="event.stopPropagation()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+    </a>
+    {% endif %}
+    {% if alert.ack_note %}
+    <span class="runbook-icon" title="Acknowledged by {{ alert.ack_by }}: {{ alert.ack_note }}">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.08V12a9 9 0 1 1-5.3-8.2"/><path d="M22 4 12 14.01l-3-3"/></svg>
+    </span>
+    {% endif %}
+  </td>
+  <td><span class="sev-tag {{ alert.severity|sevclass }}">{{ alert.severity or "—" }}</span></td>
+  <td>{% if alert.node %}<a class="node-chip" href="/nodes/{{ alert.node }}" onclick="event.stopPropagation()">{{ alert.node }}</a>{% else %}<span class="node-chip">—</span>{% endif %}</td>
+  <td>{{ alert.starts_at|duration(alert.ends_at if alert.status == "resolved" else none) }}</td>
+  <td>{{ alert.last_seen|timeago }}</td>
+</tr>

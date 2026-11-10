@@ -1,0 +1,47 @@
+<div id="nodes-panel">
+<div class="page-head">
+  <div>
+    <div class="page-title">Nodes</div>
+    <div class="page-sub">Every node that has ever thrown an alert, with its current state.</div>
+  </div>
+  <form class="sort-form" hx-get="/nodes" hx-target="#nodes-panel" hx-select="#nodes-panel" hx-swap="outerHTML" hx-push-url="true"
+        method="get" action="/nodes">
+    <label for="node-sort">Sort by</label>
+    <select id="node-sort" name="sort" onchange="this.form.requestSubmit()">
+      <option value="-last_seen" {% if sort == "-last_seen" %}selected{% endif %}>Last activity</option>
+      <option value="node" {% if sort == "node" %}selected{% endif %}>Name (A–Z)</option>
+      <option value="-firing" {% if sort == "-firing" %}selected{% endif %}>Most firing</option>
+      <option value="-total" {% if sort == "-total" %}selected{% endif %}>Most alerts</option>
+    </select>
+  </form>
+</div>
+
+{% if nodes %}
+<div class="node-grid">
+  {% for n in nodes %}
+  <a class="node-card {{ 'has-firing' if n.firing > 0 else '' }}" href="/nodes/{{ n.node }}">
+    <div class="node-card-top">
+      <div class="node-card-title">{{ n.node }}</div>
+      <span class="flap state-{{ 'firing' if n.firing > 0 else 'resolved' }}"><span class="chip"></span>{{ 'firing' if n.firing > 0 else 'clear' }}</span>
+    </div>
+    <div class="node-ratio-bar" title="{{ n.firing }} firing / {{ n.resolved }} resolved">
+      {% if n.firing > 0 %}<span class="seg seg-firing" style="width: {{ (n.firing / n.total * 100)|round(1) }}%"></span>{% endif %}
+      {% if n.resolved > 0 %}<span class="seg seg-resolved" style="width: {{ (n.resolved / n.total * 100)|round(1) }}%"></span>{% endif %}
+    </div>
+    <div class="node-card-stats">
+      <div class="ns"><b data-countup>{{ n.firing }}</b>firing</div>
+      <div class="ns"><b data-countup>{{ n.resolved }}</b>resolved</div>
+      <div class="ns"><b data-countup>{{ n.total }}</b>total</div>
+    </div>
+    <div class="node-card-last">
+      <span class="sev-tag {{ n.last_severity|sevclass }}">{{ n.last_severity or "—" }}</span>
+      <span class="node-card-last-name">{{ n.last_alertname }}</span>
+    </div>
+    <div class="node-card-time">last activity {{ n.last_seen|timeago }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="panel"><div class="panel-body"><div class="empty-state"><div class="glyph">—</div>No nodes recorded yet.</div></div></div>
+{% endif %}
+</div>

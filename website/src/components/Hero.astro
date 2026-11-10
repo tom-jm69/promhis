@@ -1,0 +1,91 @@
+---
+import HeroRadar from "./HeroRadar.astro";
+
+const rows = [
+  { name: "HighCPULoad", node: "web-07", time: "14:02:11Z", duration: "17m 35s", status: "resolved" as const },
+  { name: "DiskSpaceLow", node: "db-02", time: "13:58:02Z", duration: "running", status: "firing" as const },
+  { name: "NodeDown", node: "cache-01", time: "09:41:55Z", duration: "51s", status: "resolved" as const, dim: true },
+];
+---
+
+<section id="top" class="hero-glow relative overflow-hidden pt-24 pb-20 text-center md:pt-32 md:pb-24">
+  <div class="mx-auto max-w-3xl px-6">
+    <div data-reveal="hero" class="inline-flex items-center gap-2 rounded-full border border-(--color-line-bright) bg-(--color-panel)/70 px-4 py-1.5 text-sm text-(--color-paper-dim)">
+      <span class="h-1.5 w-1.5 rounded-full bg-(--color-resolved) pulse-dot" aria-hidden="true"></span>
+      Free and open source
+      <span class="text-(--color-line-bright)">·</span>
+      <a href="https://github.com/tom-jm69/promhis" class="text-paper hover:text-(--color-flame-bright)">MIT licensed →</a>
+    </div>
+
+    <h1 data-reveal="hero" class="mt-7 text-[clamp(2.4rem,6vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-paper">
+      Alertmanager forgets.<br class="hidden sm:inline" /> Promhis doesn't.
+    </h1>
+
+    <p data-reveal="hero" class="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-(--color-paper-dim)">
+      Alertmanager throws away every resolved alert within minutes. Promhis sits behind the same webhook and keeps
+      everything — every fire, every flap, every resolution — searchable per node, for as long as you tell it to.
+    </p>
+
+    <div data-reveal="hero" class="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a
+        href="https://github.com/tom-jm69/promhis"
+        class="w-full rounded-full bg-paper px-7 py-3.5 text-base font-semibold text-ink transition hover:-translate-y-0.5 hover:bg-white sm:w-auto"
+      >
+        Get started free
+      </a>
+      <a
+        href="https://github.com/tom-jm69/promhis"
+        class="flex w-full items-center justify-center gap-3 rounded-full border border-(--color-line-bright) bg-(--color-panel)/60 px-5 py-3.5 font-(family-name:--font-mono) text-sm text-(--color-paper-dim) transition hover:-translate-y-0.5 hover:text-paper sm:w-auto"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" /></svg>
+        docker compose up
+      </a>
+    </div>
+  </div>
+
+  <div data-reveal="hero" class="mx-auto mt-14">
+    <HeroRadar />
+  </div>
+
+  <div data-reveal="hero-proof" class="mx-auto mt-14 max-w-4xl px-6">
+    <div class="card overflow-hidden text-left shadow-[0_40px_120px_-40px_rgba(255,93,31,0.35)]">
+      <div class="flex items-center gap-2 border-b border-(--color-line) bg-(--color-panel-raised) px-5 py-3">
+        <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
+        <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
+        <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+        <span class="ml-3 shrink truncate font-(family-name:--font-mono) text-xs text-(--color-paper-dim)">promhis — alert history</span>
+        <span class="ml-auto shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wide text-(--color-paper-dim)/70">sample data</span>
+      </div>
+      <div class="grid grid-cols-1 font-(family-name:--font-mono) text-sm sm:grid-cols-[1fr_auto_auto_auto]">
+        {rows.map((row, i) => (
+          <>
+            <div class:list={["px-5 py-3 text-paper border-(--color-line)", i > 0 && "border-t sm:border-t-0", row.dim && "opacity-70"]}>
+              {row.name} <span class="text-(--color-paper-dim)">· node {row.node}</span>
+            </div>
+            <div class:list={["px-5 py-3 text-(--color-paper-dim) border-(--color-line) sm:border-l", i > 0 && "border-t sm:border-t-0", row.dim && "opacity-70"]}>
+              {row.time}
+            </div>
+            <div class:list={["px-5 py-3 text-(--color-paper-dim) border-(--color-line) sm:border-l", i > 0 && "border-t sm:border-t-0", row.dim && "opacity-70"]}>
+              {row.duration}
+            </div>
+            <div class:list={["px-5 py-3 border-(--color-line) sm:border-l", i > 0 && "border-t sm:border-t-0", row.dim && "opacity-70"]}>
+              <span
+                class:list={[
+                  "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                  row.status === "firing"
+                    ? "bg-(--color-flame)/15 text-(--color-flame-bright)"
+                    : "bg-(--color-resolved)/15 text-(--color-resolved)",
+                ]}
+              >
+                {row.status}
+              </span>
+            </div>
+          </>
+        ))}
+      </div>
+    </div>
+    <p class="mt-4 text-center text-sm text-(--color-paper-dim)">
+      Alertmanager's own UI would have thrown all three of these away by now.
+    </p>
+  </div>
+</section>

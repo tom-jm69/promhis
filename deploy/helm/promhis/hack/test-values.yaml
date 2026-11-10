@@ -1,0 +1,10 @@
+# Dummy values for local kind testing only — never use these for anything
+# real. image.repository/tag match what kind-up.sh builds and loads.
+image:
+  repository: promhis
+  tag: "kind-test"
+  pullPolicy: Never
+admin:
+  password: "kindtestpass"
+sessionSecret:
+  value: "kind-test-session-secret-abcdefgh"

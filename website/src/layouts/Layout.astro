@@ -1,0 +1,42 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Promhis — Alertmanager forgets. Promhis doesn't.",
+  description = "Promhis is the durable history layer Alertmanager doesn't have: every alert, every flap, every resolution, logged forever and searchable per node. Free and self-hosted.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="generator" content={Astro.generator} />
+    <script
+      src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"
+      integrity="sha384-oLmuahJgYYR1aWgZwdMQQ2AClE6A2eEwV2x1Z7cbIHehfkkmommQLH3wX1NDEszb"
+      crossorigin="anonymous"></script>
+  </head>
+  <body class="bg-ink text-paper antialiased">
+    <slot />
+    <script>
+      import { initScrollReveal } from "../scripts/scroll-reveal";
+      initScrollReveal();
+    </script>
+  </body>
+</html>

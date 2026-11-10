@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Sign in — Promhis{% endblock %}
+{% block content %}
+<div class="login-wrap">
+  <div class="login-panel">
+    <div class="login-brand">PROMHIS</div>
+    <div class="login-sub">Sign in</div>
+    {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username" autofocus required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="login-submit" type="submit">Sign In</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{{- if .Values.metrics.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "promhis.fullname" . }}
+  labels:
+    {{- include "promhis.labels" . | nindent 4 }}
+    {{- with .Values.metrics.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "promhis.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.metrics.serviceMonitor.interval }}
+      {{- if .Values.metrics.user }}
+      basicAuth:
+        username:
+          name: {{ .Values.metrics.existingSecret | default (include "promhis.fullname" .) }}
+          key: metrics-user
+        password:
+          name: {{ .Values.metrics.existingSecret | default (include "promhis.fullname" .) }}
+          key: {{ ternary .Values.metrics.existingSecretPasswordKey "metrics-password" (ne .Values.metrics.existingSecret "") }}
+      {{- end }}
+{{- end }}

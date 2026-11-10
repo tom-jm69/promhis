@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ alert.alertname }} — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">{{ alert.alertname }}</div>
+    <div class="page-sub">Fingerprint {{ alert.fingerprint[:16] }}… — first seen {{ alert.first_seen|timeago }}</div>
+  </div>
+  <div class="detail-head-actions">
+    {% if flaps > 2 %}
+    <span class="sev-tag sev-warning" title="{{ flaps }} events in the last hour">flapping ×{{ flaps }} in 1h</span>
+    {% endif %}
+    {% if alert.annotations.get("runbook_url") %}
+    <a class="btn" href="{{ alert.annotations.get('runbook_url') }}" target="_blank" rel="noopener">Runbook ↗</a>
+    {% endif %}
+    <span class="flap state-{{ alert.status }}"><span class="chip"></span>{{ alert.status }}</span>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div>
+    {% include "partials/alert_ledger.html" %}
+  </div>
+
+  <div>
+    <div class="panel">
+      <div class="panel-head"><h2>Details</h2></div>
+      <div class="panel-body">
+        <div class="kv-list">
+          <div class="kv-row"><span class="k">Severity</span><span class="v"><span class="sev-tag {{ alert.severity|sevclass }}">{{ alert.severity or "—" }}</span></span></div>
+          <div class="kv-row"><span class="k">Node</span><span class="v">{% if alert.node %}<a class="node-chip" href="/nodes/{{ alert.node }}">{{ alert.node }}</a>{% else %}—{% endif %}</span></div>
+          <div class="kv-row"><span class="k">Started</span><span class="v">{{ alert.starts_at.strftime("%Y-%m-%d %H:%M:%S") }}</span></div>
+          <div class="kv-row"><span class="k">Ended</span><span class="v">{{ alert.ends_at.strftime("%Y-%m-%d %H:%M:%S") if alert.ends_at else "—" }}</span></div>
+          <div class="kv-row"><span class="k">Duration</span><span class="v">{{ alert.starts_at|duration(alert.ends_at) }}</span></div>
+          <div class="kv-row"><span class="k">Receiver</span><span class="v">{{ alert.receiver or "—" }}</span></div>
+          {% if alert.group_key and group_siblings > 0 %}
+          <div class="kv-row"><span class="k">Group</span><span class="v"><a href="/alerts?group={{ alert.group_key | urlencode }}">{{ group_siblings }} other alert{{ "s" if group_siblings != 1 else "" }} in this group →</a></span></div>
+          {% endif %}
+          {% if alert.generator_url %}
+          <div class="kv-row"><span class="k">Source</span><span class="v"><a href="{{ alert.generator_url }}" target="_blank" rel="noopener">Open in Prometheus ↗</a></span></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Acknowledgment</h2></div>
+      <div class="panel-body">
+        {% include "partials/ack_panel.html" %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Incident Notes</h2></div>
+      <div class="panel-body">
+        {% include "partials/incident_notes_panel.html" %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Labels</h2></div>
+      <div class="panel-body">
+        <div class="label-pills">
+          {% for k, v in alert.labels.items() %}
+          <span class="label-pill"><b>{{ k }}</b>={{ v }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% if alert.annotations %}
+    <div class="panel">
+      <div class="panel-head"><h2>Annotations</h2></div>
+      <div class="panel-body">
+        <div class="kv-list">
+          {% for k, v in alert.annotations.items() %}
+          <div class="kv-row"><span class="k">{{ k }}</span><span class="v">{{ v }}</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

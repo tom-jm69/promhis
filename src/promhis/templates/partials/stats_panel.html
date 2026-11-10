@@ -1,0 +1,89 @@
+<div id="stats-panel">
+<script id="range-stats-data" type="application/json">{{ data_json | safe }}</script>
+
+<div class="page-head">
+  <div>
+    <div class="page-title">Statistics</div>
+    <div class="page-sub">{{ event_count }} event{{ "s" if event_count != 1 else "" }} in range.</div>
+  </div>
+  <form class="sort-form" hx-get="/stats" hx-target="#stats-panel" hx-select="#stats-panel" hx-swap="outerHTML" hx-push-url="true"
+        method="get" action="/stats">
+    <label for="range-select">Range</label>
+    <select id="range-select" name="range" onchange="this.form.requestSubmit()">
+      <option value="24h" {% if range == "24h" %}selected{% endif %}>Last 24 hours</option>
+      <option value="7d" {% if range == "7d" %}selected{% endif %}>Last 7 days</option>
+      <option value="30d" {% if range == "30d" %}selected{% endif %}>Last 30 days</option>
+      <option value="90d" {% if range == "90d" %}selected{% endif %}>Last 90 days</option>
+      <option value="all" {% if range == "all" %}selected{% endif %}>All time</option>
+    </select>
+  </form>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-head"><h2>Firing vs. resolved</h2></div>
+    <div class="panel-body"><div class="chart-wrap"><canvas id="range-volume-chart"></canvas></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h2>Severity over time</h2></div>
+    <div class="panel-body"><div class="chart-wrap"><canvas id="range-severity-chart"></canvas></div></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-head"><h2>Top nodes by volume</h2></div>
+    <div class="panel-body flush">
+      {% if top_nodes %}
+      <table class="register">
+        <thead><tr><th>Node</th><th>Events</th></tr></thead>
+        <tbody>
+          {% for node, count in top_nodes %}
+          <tr><td class="strong"><a href="/nodes/{{ node }}">{{ node }}</a></td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="glyph">—</div>No events in this range.</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h2>MTTR trend</h2><span class="range">weekly average</span></div>
+    <div class="panel-body">
+      {% if mttr_trend %}
+      <div class="chart-wrap"><canvas id="range-mttr-chart"></canvas></div>
+      {% else %}
+      <div class="empty-state"><div class="glyph">—</div>Nothing resolved in this range yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <h2>Event browser</h2>
+    <span class="range">{{ "most recent 200 of " ~ event_count if event_count > 200 else event_count }} event{{ "s" if event_count != 1 else "" }}</span>
+  </div>
+  <div class="panel-body flush">
+    {% if events %}
+    <table class="register">
+      <thead><tr><th>Received</th><th>State</th><th>Alert</th><th>Severity</th><th>Node</th></tr></thead>
+      <tbody>
+        {% for e in events %}
+        <tr class="row-link" onclick="window.location='/alerts/{{ e.fingerprint }}'">
+          <td>{{ e.received_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+          <td><span class="flap state-{{ e.status }}"><span class="chip"></span>{{ e.status }}</span></td>
+          <td class="strong">{{ e.alertname }}</td>
+          <td><span class="sev-tag {{ e.severity|sevclass }}">{{ e.severity or "—" }}</span></td>
+          <td>{% if e.node %}<a class="node-chip" href="/nodes/{{ e.node }}" onclick="event.stopPropagation()">{{ e.node }}</a>{% else %}<span class="node-chip">—</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><div class="glyph">—</div>No events in this range — try a wider one.</div>
+    {% endif %}
+  </div>
+</div>
+</div>

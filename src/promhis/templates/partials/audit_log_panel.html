@@ -1,0 +1,60 @@
+<div id="audit-panel">
+<div class="panel">
+  <form class="filter-bar" hx-get="/audit-log" hx-target="#audit-panel" hx-select="#audit-panel" hx-swap="outerHTML" hx-push-url="true"
+        method="get" action="/audit-log">
+    <select name="outcome" onchange="this.form.requestSubmit()">
+      <option value="" {% if not outcome %}selected{% endif %}>Any outcome</option>
+      <option value="success" {% if outcome == "success" %}selected{% endif %}>Success</option>
+      <option value="failure" {% if outcome == "failure" %}selected{% endif %}>Failure</option>
+      <option value="missing" {% if outcome == "missing" %}selected{% endif %}>Missing credentials</option>
+    </select>
+    {% if outcome %}
+    <a class="btn ghost" hx-get="/audit-log" hx-target="#audit-panel" hx-select="#audit-panel" hx-swap="outerHTML" hx-push-url="true" href="/audit-log">Clear</a>
+    {% endif %}
+  </form>
+  <table class="register">
+    <thead>
+      <tr>
+        <th>Received</th>
+        <th>Outcome</th>
+        <th>Status</th>
+        <th>Source IP</th>
+        <th>Auth mode</th>
+        <th>Alerts</th>
+        <th>Receiver</th>
+        <th>Detail</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td>{{ e.received_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+        <td><span class="flap state-{{ 'resolved' if e.auth_result == 'success' else 'firing' }}">{{ e.auth_result }}</span></td>
+        <td class="strong">{{ e.status_code }}</td>
+        <td class="node-chip">{{ e.source_ip or "—" }}</td>
+        <td>{{ e.auth_mode }}</td>
+        <td>{{ e.alert_count if e.alert_count is not none else "—" }}</td>
+        <td>{{ e.receiver or "—" }}</td>
+        <td>{{ e.error_detail or "—" }}</td>
+      </tr>
+      {% else %}
+      <tr class="empty-row"><td colspan="8">
+        <div class="empty-state"><div class="glyph">—</div>No requests recorded yet.</div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pagination">
+    <span>{{ total }} entr{{ "y" if total == 1 else "ies" }} — page {{ page }}</span>
+    <div class="links">
+      {% set qs = "&outcome=" ~ (outcome | urlencode) %}
+      {% if has_prev %}
+      <a class="page-btn" hx-get="/audit-log?page={{ page - 1 }}{{ qs }}" hx-target="#audit-panel" hx-select="#audit-panel" hx-swap="outerHTML" hx-push-url="true" href="/audit-log?page={{ page - 1 }}{{ qs }}">‹ Prev</a>
+      {% else %}<span class="page-btn disabled">‹ Prev</span>{% endif %}
+      {% if has_next %}
+      <a class="page-btn" hx-get="/audit-log?page={{ page + 1 }}{{ qs }}" hx-target="#audit-panel" hx-select="#audit-panel" hx-swap="outerHTML" hx-push-url="true" href="/audit-log?page={{ page + 1 }}{{ qs }}">Next ›</a>
+      {% else %}<span class="page-btn disabled">Next ›</span>{% endif %}
+    </div>
+  </div>
+</div>
+</div>

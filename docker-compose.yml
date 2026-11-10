@@ -1,0 +1,55 @@
+services:
+  promhis:
+    build: .
+    ports:
+      - "8000:8000"
+    # `env_file` passes through every PROMHIS_* setting in .env (database
+    # URL, licensing, branding, notifications, digest, etc.) without having
+    # to enumerate each one here — `environment:` below only needs the two
+    # that must be validated (fail loudly if unset) or given a container-side
+    # default; it takes precedence over env_file for those specific keys.
+    env_file: .env
+    environment:
+      PROMHIS_ADMIN_USER: ${PROMHIS_ADMIN_USER:-admin}
+      PROMHIS_ADMIN_PASSWORD: ${PROMHIS_ADMIN_PASSWORD:?set a real password in .env}
+      PROMHIS_SESSION_SECRET: ${PROMHIS_SESSION_SECRET:?set a random secret in .env}
+      PROMHIS_RETENTION_DAYS: ${PROMHIS_RETENTION_DAYS:-90}
+      PROMHIS_DATABASE_URL: ${PROMHIS_DATABASE_URL:-postgresql+asyncpg://promhis:${POSTGRES_PASSWORD:-promhis}@postgres:5432/promhis}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Bundled Postgres — the only supported storage (see ROADMAP.md). Point
+  # PROMHIS_DATABASE_URL at your own instance instead if you'd rather not
+  # run this; nothing else in this file assumes it.
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: promhis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-promhis}
+      POSTGRES_DB: promhis
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U promhis -d promhis"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # Optional: a local Alertmanager for trying the full pipeline end to end.
+  # Run with: docker compose --profile demo up
+  alertmanager:
+    image: prom/alertmanager:latest
+    profiles: ["demo"]
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./deploy/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    depends_on:
+      - promhis
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

@@ -1,0 +1,37 @@
+---
+const points = [
+  {
+    title: "Not a replacement",
+    text: "Alertmanager stays excellent at routing and deduplicating alerts in the moment. Promhis sits behind its webhook and keeps the record it throws away.",
+  },
+  {
+    title: "History is the point",
+    text: "Every status transition is logged permanently, or for however long your retention window says — never collapsed down to just current state.",
+  },
+  {
+    title: "Node is first-class",
+    text: "Every alert a given node has ever thrown, in one place — not buried in a labels panel three clicks deep.",
+  },
+];
+---
+
+<section class="border-t border-(--color-line) bg-ink py-24">
+  <div class="mx-auto max-w-6xl px-6">
+    <h2 class="max-w-xl text-3xl font-bold tracking-tight text-paper md:text-4xl">What Promhis actually does</h2>
+    <p class="mt-4 max-w-xl text-(--color-paper-dim)">
+      A durable history layer for Alertmanager — not a metrics product, not a dashboard replacement.
+    </p>
+
+    <div class="mt-12 grid gap-10 md:grid-cols-3">
+      {points.map((p) => (
+        <div data-reveal="intro">
+          <span class="icon-circle bg-(--color-flame)/15 text-(--color-flame-bright)" aria-hidden="true">
+            <span class="h-2.5 w-2.5 rounded-full bg-current"></span>
+          </span>
+          <h3 class="mt-5 text-lg font-semibold text-paper">{p.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-(--color-paper-dim)">{p.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

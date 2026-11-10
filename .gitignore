@@ -1,0 +1,38 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local runtime data / secrets
+*.db
+*.db-journal
+.env
+
+# basedpyright
+.basedpyright/
+
+# Terraform: state and local provider cache are environment-specific and may
+# contain secrets (RDS passwords, etc.) — never commit them. The lock file
+# (.terraform.lock.hcl) IS committed, same reasoning as any other lockfile.
+deploy/**/.terraform/
+deploy/**/*.tfstate
+deploy/**/*.tfstate.*
+deploy/**/*.tfvars
+!deploy/**/*.tfvars.example
+deploy/**/crash.log
+
+# Impeccable: these runtime subdirs regenerate themselves and carry no
+# durable decisions. PRODUCT.md, DESIGN.md, .impeccable/config.json,
+# .impeccable/surfaces/, .impeccable/design.json are committed — do not
+# blanket-ignore .impeccable/.
+.impeccable/questions/
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/build/
+.impeccable/critique/

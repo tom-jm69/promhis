@@ -1,0 +1,39 @@
+<tr id="routing-row-{{ row.integration.id }}">
+  <td class="strong">
+    <span class="channel-row">
+      {% if row.icon_svg %}<span class="channel-icon">{{ row.icon_svg | safe }}</span>{% endif %}
+      {{ row.display_name }}
+    </span>
+    {% if row.masked_config %}
+    <div class="routing-config-hint">{{ row.masked_config[0].label }}: {{ row.masked_config[0].value or "—" }}</div>
+    {% endif %}
+  </td>
+  <td>
+    <div class="label-pills">
+      {% if row.routing_rules %}
+        {% for r in row.routing_rules %}<span class="label-pill"><b>{{ r.label }}</b>={{ r.value }}</span>{% endfor %}
+      {% else %}
+      <span class="label-pill label-pill-muted">all alerts</span>
+      {% endif %}
+    </div>
+  </td>
+  <td>
+    <details class="routing-editor">
+      <summary class="btn ghost">Edit routing</summary>
+      <form hx-post="/routing/{{ row.integration.id }}" hx-target="#routing-row-{{ row.integration.id }}" hx-swap="outerHTML"
+            method="post" action="/routing/{{ row.integration.id }}" class="routing-form">
+        <p class="routing-rules-hint">Match alerts where every condition below is true:</p>
+        <div class="routing-conditions">
+          {% for slot in row.rule_slots %}
+          <div class="routing-condition{{ ' is-muted' if slot.muted else '' }}">
+            <input type="text" name="rule_label_{{ loop.index0 }}" list="label-keys" placeholder="label" value="{{ slot.label }}">
+            <span class="routing-eq">=</span>
+            <input type="text" name="rule_value_{{ loop.index0 }}" placeholder="value" value="{{ slot.value }}">
+          </div>
+          {% endfor %}
+        </div>
+        <button class="btn" type="submit">Save</button>
+      </form>
+    </details>
+  </td>
+</tr>

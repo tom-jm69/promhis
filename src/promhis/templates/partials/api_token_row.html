@@ -1,0 +1,13 @@
+<tr id="token-row-{{ t.id }}">
+  <td class="strong">{{ t.name }}</td>
+  <td>{{ t.created_at|timeago }}</td>
+  <td>{{ t.last_used_at|timeago if t.last_used_at else "never" }}</td>
+  <td>{% if t.revoked %}<span class="sev-tag sev-none">revoked</span>{% else %}<span class="sev-tag sev-info">active</span>{% endif %}</td>
+  <td>
+    {% if not t.revoked %}
+    <form hx-post="/api-tokens/{{ t.id }}/revoke" hx-target="#token-row-{{ t.id }}" hx-swap="outerHTML" method="post" action="/api-tokens/{{ t.id }}/revoke" style="margin:0;">
+      <button class="btn ghost" type="submit">Revoke</button>
+    </form>
+    {% endif %}
+  </td>
+</tr>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Alerts — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">Alert Register</div>
+    <div class="page-sub">Every alert Promhis has ever recorded, filterable by state, severity, and node.</div>
+  </div>
+</div>
+<div class="panel">
+  <div class="panel-body flush">
+    {% include "partials/alerts_table.html" %}
+  </div>
+</div>
+{% endblock %}

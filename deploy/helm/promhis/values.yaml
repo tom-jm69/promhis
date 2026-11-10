@@ -1,0 +1,218 @@
+# Default values for promhis.
+# See docs/configuration.md in the main repo for what every PROMHIS_* setting does.
+
+replicaCount: 1
+
+image:
+  # .github/workflows/publish.yml builds and pushes this on every push to
+  # main/version tags — but only once this repo is actually on GitHub (see
+  # deploy/helm/promhis/README.md). Build and push your own in the meantime.
+  repository: ghcr.io/tom-jm69/promhis
+  tag: "" # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000 # matches the Dockerfile's `promhis` user — keep these in sync
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: true # stateless — all storage is Postgres, nothing is written to the container filesystem
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: promhis.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # - secretName: promhis-tls
+  #   hosts:
+  #     - promhis.example.com
+
+resources:
+  {}
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # limits:
+  #   memory: 512Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# -- Liveness/readiness both hit the app's own /healthz.
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# -- Storage. Postgres is the only supported backend (see ROADMAP.md) — the
+# app itself holds no state, so it's always safe to run more than one
+# replica regardless of how Postgres is provided below.
+#
+# By default this chart runs its own single-instance Postgres alongside the
+# app (postgresql.enabled: true) — convenient for trying this out or a small
+# self-host, same spirit as docker-compose.yml's bundled `postgres` service.
+# For anything you actually depend on, point `database.url` (or
+# `database.existingSecret`) at a real, properly-backed-up Postgres instead
+# and set `postgresql.enabled: false` — this chart does not back up the
+# bundled instance's PVC for you.
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    username: promhis
+    database: promhis
+    # Leave blank to auto-generate a random password on first install (and
+    # keep reusing the same one on every later `helm upgrade` — it's read
+    # back from the cluster, not re-rolled). Set it explicitly only if you
+    # need a known value.
+    password: ""
+  persistence:
+    enabled: true
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 8Gi
+    existingClaim: ""
+    annotations: {}
+  resources: {}
+
+# -- Only used when postgresql.enabled is false, to point at your own
+# instance. Prefer existingSecret over a plaintext URL in values.
+database:
+  url: ""
+  existingSecret: ""
+  existingSecretKey: "database-url"
+
+# -- Dashboard login + webhook Basic auth (same single-admin credentials,
+# see docs/self-hosting.md). Set these for real before exposing this past
+# your own machine — the chart refuses to install with the chart defaults.
+admin:
+  user: admin
+  password: ""
+  existingSecret: ""
+  existingSecretUserKey: "admin-user"
+  existingSecretPasswordKey: "admin-password"
+
+# -- Signs the dashboard session cookie. Generate with:
+#   python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+sessionSecret:
+  value: ""
+  existingSecret: ""
+  existingSecretKey: "session-secret"
+
+retentionDays: 90
+
+# -- Optional backup/bootstrap poller against a live Alertmanager's
+# /api/v2/alerts — the webhook push (see README's quickstart) is the
+# primary ingest path; this is not a substitute for configuring it.
+alertmanager:
+  url: ""
+  pollSeconds: 60
+
+# -- Webhook ingest auth: "basic" (matches admin.user/admin.password above)
+# or "bearer" (a single rotatable token instead).
+webhook:
+  authMode: basic
+  token: ""
+  existingSecret: ""
+  existingSecretKey: "webhook-token"
+
+# -- Trust X-Forwarded-For/-Proto from in front of this pod. Only turn this
+# on if there's a real reverse proxy/ingress controller in front — most
+# clusters' ingress controllers qualify; turn it on alongside `ingress.enabled`.
+trustProxy: false
+
+# -- GET /metrics (Prometheus scrape endpoint for the app's own metrics,
+# distinct from the alerts it stores). Open by default, same as /healthz.
+metrics:
+  enabled: true
+  user: ""
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "metrics-password"
+  allowedIPs: ""
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    labels: {}
+
+# -- Requires the `branding` licensed feature (see PRICING.md) — ignored
+# entirely on an unlicensed/Free install.
+branding:
+  name: ""
+  # logoPath points at a path *inside the container*; mount it yourself
+  # (e.g. via extraVolumes/extraVolumeMounts below) if you set this.
+  logoPath: ""
+
+# -- Base URL this instance is reachable at, used only to build "view in
+# Promhis" links in outbound notifications.
+publicBaseUrl: ""
+
+# -- An Enterprise license file (see docs/licensing.md). Provide the raw
+# JSON content directly, or reference an existing Secret you've created
+# out of band (recommended — a license file is not a secret-secret, but
+# treat it like config you don't want in `helm get values` history).
+license:
+  content: ""
+  existingSecret: ""
+  existingSecretKey: "license.json"
+
+# -- Daily digest email (opt-in; unset digestTo leaves it off entirely).
+digest:
+  to: ""
+  hourUtc: 8
+  smtp:
+    host: ""
+    port: 587
+    user: ""
+    password: ""
+    existingSecret: ""
+    existingSecretPasswordKey: "smtp-password"
+    from: "promhis@localhost"
+    useTls: true
+
+# -- Escape hatches for anything above doesn't cover — merged in as-is.
+extraEnv: []
+# - name: PROMHIS_NODE_LABELS
+#   value: "node,instance,hostname,region"
+extraEnvFrom: []
+extraVolumes: []
+extraVolumeMounts: []

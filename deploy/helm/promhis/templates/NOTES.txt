@@ -1,0 +1,62 @@
+Promhis has been installed.
+
+{{- if .Values.postgresql.enabled }}
+
+Storage: a bundled Postgres instance on a {{ .Values.postgresql.persistence.size }} PersistentVolumeClaim
+({{ include "promhis.postgresFullname" . }}). Fine for trying this out or a small
+self-host — for anything you depend on, point database.url at a real,
+properly-backed-up Postgres instead and set postgresql.enabled: false.
+{{- else }}
+
+Storage: the external Postgres you provided via database.url/existingSecret —
+no database was created by this chart.
+{{- end }}
+
+1. Get the admin login (unless you set admin.existingSecret yourself):
+
+  echo "user:     {{ .Values.admin.user }}"
+  echo "password: $(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "promhis.fullname" . }} -o jsonpath='{.data.admin-password}' | base64 -d)"
+
+2. Reach the dashboard:
+
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ (index .paths 0).path }}
+{{- end }}
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  kubectl get svc --namespace {{ .Release.Namespace }} {{ include "promhis.fullname" . }} -w
+  (wait for EXTERNAL-IP, then open it on port {{ .Values.service.port }})
+{{- else }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "promhis.fullname" . }} 8000:{{ .Values.service.port }}
+  open http://localhost:8000
+{{- end }}
+
+3. Point your Alertmanager at this instance's webhook receiver — see
+   docs/alertmanager-integration.md in the main repo:
+
+  webhook_configs:
+    - url: 'http://{{ include "promhis.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/webhook'
+      {{- if eq .Values.webhook.authMode "bearer" }}
+      # PROMHIS_WEBHOOK_AUTH_MODE is "bearer" — send the token as a Bearer
+      # Authorization header, not http_config.basic_auth below.
+      {{- else }}
+      http_config:
+        basic_auth:
+          username: {{ .Values.admin.user }}
+          password: <the admin password printed above>
+      {{- end }}
+
+{{- if not (or .Values.license.content .Values.license.existingSecret) }}
+
+No Enterprise license configured — running on the Free tier (unlimited
+history, Postgres, the Stats page, and everything else that makes the
+product work; see PRICING.md for what a license additionally unlocks).
+{{- end }}
+
+{{- if eq .Values.image.repository "ghcr.io/tom-jm69/promhis" }}
+
+NOTE: you're using the default image.repository, which only resolves to a
+real image once this repo is on GitHub and .github/workflows/publish.yml
+has run. Until then, build and push your own — see
+deploy/helm/promhis/README.md.
+{{- end }}

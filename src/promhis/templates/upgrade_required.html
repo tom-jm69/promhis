@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Upgrade required — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">Upgrade required</div>
+  </div>
+</div>
+<div class="panel">
+  <div class="panel-body">
+    <div class="empty-state">
+      <div class="glyph">—</div>
+      <p><span class="sev-tag sev-none">{{ feature }}</span></p>
+      <p>This feature requires a license that includes it. See <code>PRICING.md</code> or <code>docs/licensing.md</code>.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

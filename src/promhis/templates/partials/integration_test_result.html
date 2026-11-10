@@ -1,0 +1,5 @@
+{% if result.ok %}
+<span class="test-result-inline ok">Sent to {{ result.display_name }}</span>
+{% else %}
+<span class="test-result-inline failed">Failed: {{ result.detail or "unknown error" }}</span>
+{% endif %}

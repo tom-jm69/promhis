@@ -1,0 +1,65 @@
+---
+const features = [
+  {
+    tag: "security",
+    name: "Audit log",
+    desc: "Every webhook request, accepted or rejected, recorded with source IP, auth outcome, and alert count.",
+    icon: "M10.5 3.5a7 7 0 100 14 7 7 0 000-14zM15.5 15.5L21 21",
+  },
+  {
+    tag: "signal",
+    name: "Flapping detection",
+    desc: "An alert that fires and clears repeatedly in a short window gets flagged right on its detail page.",
+    icon: "M2 12h4l2-7 4 14 2-9 2 6h6",
+  },
+  {
+    tag: "response",
+    name: "Runbook links",
+    desc: "Drop a runbook_url annotation in Alertmanager and it shows up as a one-click link next to the alert.",
+    icon: "M6 3h11a2 2 0 012 2v16l-7-3-7 3V5a2 2 0 011-2z",
+  },
+  {
+    tag: "team-leveled",
+    name: "Outbound forwarding",
+    desc: "Slack, Discord, Teams, PagerDuty, Opsgenie, or a generic webhook — configured from the dashboard.",
+    icon: "M4 12h5M4 12l3-3M4 12l3 3M20 6h-5M20 6l-3-3M20 6l-3 3M20 18h-5M20 18l-3-3M20 18l-3 3",
+  },
+  {
+    tag: "insight",
+    name: "Stats & trends",
+    desc: "Firing-vs-resolved volume, severity over time, MTTR, top-noisy alerts — 24h, 7d, 30d, 90d, or all time.",
+    icon: "M3 12h4v8H3zM10 7h4v13h-4zM17 3h4v17h-4z",
+  },
+  {
+    tag: "business+",
+    name: "Read-only API tokens",
+    desc: "Pull alert history into Grafana or your own tooling with a revocable, hashed Bearer token.",
+    icon: "M8 15a4 4 0 100-8 4 4 0 000 8zM11 12l9-9M17 6l2 2M14 9l2 2",
+  },
+];
+---
+
+<section id="features" class="border-t border-(--color-line) bg-panel py-24">
+  <div class="mx-auto max-w-6xl px-6">
+    <h2 class="max-w-xl text-3xl font-bold tracking-tight text-paper md:text-4xl">Everything you need</h2>
+    <p class="mt-4 max-w-xl text-(--color-paper-dim)">
+      Not a metrics product, not an Alertmanager replacement. A focused set of tools built around the one thing
+      Alertmanager won't do: keep a record.
+    </p>
+
+    <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {features.map((f) => (
+        <div class="card p-7 transition hover:border-(--color-line-bright)" data-reveal="features">
+          <span class="icon-circle bg-(--color-flame)/12 text-(--color-flame-bright)">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d={f.icon} />
+            </svg>
+          </span>
+          <h3 class="mt-5 text-base font-semibold text-paper">{f.name}</h3>
+          <span class="mt-1 block text-[11px] font-semibold uppercase tracking-wide text-(--color-paper-dim)">{f.tag}</span>
+          <p class="mt-3 text-sm leading-relaxed text-(--color-paper-dim)">{f.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

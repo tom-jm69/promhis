@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typecheck:
+    name: basedpyright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv sync
+      - run: uv run basedpyright
+
+  test:
+    name: docker test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker build --target test .
+
+  website:
+    name: marketing website build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker build website -t promhis-website:ci
+
+  helm:
+    name: helm chart (lint, template, real install)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: promhis-ci
+          install_only: true
+
+      - name: Lint chart
+        run: helm lint deploy/helm/promhis -f deploy/helm/promhis/hack/test-values.yaml
+
+      - name: Template chart (catches rendering bugs even without a cluster)
+        run: helm template promhis deploy/helm/promhis -f deploy/helm/promhis/hack/test-values.yaml > /dev/null
+
+      - name: Build and load the app image into kind
+        run: |
+          docker build -t promhis:kind-test .
+          kind load docker-image promhis:kind-test --name promhis-ci
+
+      # The real point of this job: lint/template can't catch a chart that
+      # renders valid YAML but doesn't actually come up (see git history —
+      # a label-selector overlap between the app and bundled-Postgres
+      # Services, and runAsNonRoot vs. a non-numeric Dockerfile USER, both
+      # passed lint/template clean and only showed up on a live cluster).
+      - name: Install chart and wait for it to actually start
+        run: |
+          helm install promhis deploy/helm/promhis \
+            -f deploy/helm/promhis/hack/test-values.yaml \
+            --wait --timeout 3m
+
+      - name: Smoke test through the real Service
+        run: |
+          kubectl port-forward svc/promhis 18000:8000 &
+          for i in $(seq 1 10); do curl -sf http://localhost:18000/healthz && break || sleep 2; done
+          curl -sf http://localhost:18000/healthz
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:18000/login)" = "200"
+
+      - name: Dump cluster state on failure
+        if: failure()
+        run: |
+          kubectl get all -o wide
+          kubectl describe pods
+          kubectl logs -l app.kubernetes.io/name=promhis --all-containers --tail=200 --prefix || true

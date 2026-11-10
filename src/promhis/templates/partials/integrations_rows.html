@@ -1,0 +1,7 @@
+{% for row in rows %}
+{% include "partials/integration_row.html" %}
+{% else %}
+<tr class="empty-row"><td colspan="4">
+  <div class="empty-state"><div class="glyph">—</div>No integrations configured yet.</div>
+</td></tr>
+{% endfor %}

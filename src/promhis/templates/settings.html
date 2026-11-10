@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Settings — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">Settings</div>
+    <div class="page-sub">Runtime overrides for a small set of operational knobs. A <code>PROMHIS_*</code> environment variable always wins when set — that field is shown read-only below.</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>Metrics endpoint (<code>/metrics</code>)</h2></div>
+  <div class="panel-body">
+    {% include "partials/metrics_enabled_panel.html" %}
+
+    <div id="metrics-auth-fields" class="field-divider" {% if not metrics_enabled %}style="display:none;"{% endif %}>
+      <form method="post" action="/settings/metrics/auth">
+        <div class="field">
+          <label for="metrics_user">Basic auth username</label>
+          {% if metrics_user_locked %}
+          <input type="text" value="{{ metrics_user or '' }}" disabled>
+          <div class="hint">Set via <code>PROMHIS_METRICS_USER</code> — edit <code>.env</code> to change.</div>
+          {% else %}
+          <input type="text" id="metrics_user" name="metrics_user" value="{{ metrics_user or '' }}" placeholder="unset (no Basic auth)"
+                 {% if not metrics_password_locked %}oninput="var pw = document.getElementById('metrics_password'); pw.required = this.value.trim().length > 0 && {{ 'false' if metrics_password_masked else 'true' }}; if (!pw.required) pw.classList.remove('field-invalid');"{% endif %}>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="metrics_password">Basic auth password</label>
+          {% if metrics_password_locked %}
+          <input type="password" value="••••••••" disabled>
+          <div class="hint">Set via <code>PROMHIS_METRICS_PASSWORD</code> — edit <code>.env</code> to change.</div>
+          {% else %}
+          <input type="password" id="metrics_password" name="metrics_password" autocomplete="new-password"
+                 {% if metrics_user and not metrics_password_masked %}required{% endif %}
+                 oninvalid="this.classList.add('field-invalid')" oninput="this.classList.remove('field-invalid')"
+                 placeholder="{% if metrics_password_masked %}leave blank to keep current ({{ metrics_password_masked }}){% else %}leave blank for none{% endif %}">
+          {% if metrics_user and not metrics_password_masked %}
+          <div class="hint">Required once a username is set — Basic auth never activates with only one of the two configured.</div>
+          {% endif %}
+          {% if metrics_password_masked %}
+          <div class="hint">Currently set ({{ metrics_password_masked }}). <button type="submit" formaction="/settings/metrics/clear-password" class="btn ghost" style="padding:2px 8px;font-size:11.5px;">Clear</button></div>
+          {% endif %}
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="metrics_allowed_ips">Allowed IPs / CIDRs</label>
+          {% if metrics_allowed_ips_locked %}
+          <input type="text" value="{{ metrics_allowed_ips }}" disabled>
+          <div class="hint">Set via <code>PROMHIS_METRICS_ALLOWED_IPS</code> — edit <code>.env</code> to change.</div>
+          {% else %}
+          <input type="text" id="metrics_allowed_ips" name="metrics_allowed_ips" value="{{ metrics_allowed_ips }}" placeholder="unset (no IP restriction), e.g. 10.0.0.0/8, 127.0.0.1">
+          {% endif %}
+        </div>
+
+        {% if not (metrics_user_locked and metrics_password_locked and metrics_allowed_ips_locked) %}
+        <button type="submit" class="btn">Save</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

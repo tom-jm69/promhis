@@ -1,0 +1,48 @@
+<div class="field">
+  <label>Metrics collection</label>
+  <div class="toggle-field">
+    <label class="toggle-switch">
+      {% if metrics_enabled_locked %}
+      <input type="checkbox" disabled {% if metrics_enabled %}checked{% endif %}>
+      {% else %}
+      <input type="checkbox" {% if metrics_enabled %}checked{% endif %} onchange="promhisToggleMetricsEnabled(this)">
+      {% endif %}
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">{{ "Enabled" if metrics_enabled else "Disabled" }}</span>
+  </div>
+  {% if metrics_enabled_locked %}
+  <div class="hint">Set via <code>PROMHIS_METRICS_ENABLED</code> — edit <code>.env</code> to change.</div>
+  {% else %}
+  <div class="hint">Off returns a plain 404 for <code>/metrics</code> — same "cleanly absent" posture as any other disabled feature here, not an auth error.</div>
+  {% endif %}
+</div>
+<script>
+  // Persists in the background, no DOM swap — the slider's own CSS
+  // transition (:checked -> translateX) is the entire visual response.
+  // Also shows/hides the auth fields below: they're meaningless once the
+  // endpoint itself is off.
+  function promhisSyncMetricsToggleUI(checkbox) {
+    const label = checkbox.closest(".toggle-field").querySelector(".toggle-label");
+    if (label) label.textContent = checkbox.checked ? "Enabled" : "Disabled";
+    const authFields = document.getElementById("metrics-auth-fields");
+    if (authFields) authFields.style.display = checkbox.checked ? "" : "none";
+  }
+
+  function promhisToggleMetricsEnabled(checkbox) {
+    const next = checkbox.checked;
+    promhisSyncMetricsToggleUI(checkbox);
+    fetch("/settings/metrics/enabled", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: next ? "metrics_enabled=on" : "",
+    }).then((r) => {
+      if (!r.ok) throw new Error("save failed");
+    }).catch(() => {
+      // Couldn't persist it — revert so the switch never lies about what's
+      // actually saved server-side.
+      checkbox.checked = !next;
+      promhisSyncMetricsToggleUI(checkbox);
+    });
+  }
+</script>

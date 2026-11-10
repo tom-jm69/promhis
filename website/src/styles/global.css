@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink: #0a0a0d;
+  --color-panel: #121217;
+  --color-panel-raised: #1a1a21;
+  --color-line: #26262f;
+  --color-line-bright: #3a3a45;
+  --color-paper: #f2f1ef;
+  --color-paper-dim: #9b9aa3;
+
+  --color-flame: #ff5d1f;
+  --color-flame-bright: #ff7f3f;
+  --color-resolved: #2effa3;
+  --color-resolved-dim: #1f8f66;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-ink);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-flame);
+  color: var(--color-ink);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-bright);
+  border-radius: 8px;
+  border: 3px solid var(--color-ink);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-flame);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-flame-bright);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- */
+/* Hero gradient glow                                                 */
+/* ---------------------------------------------------------------- */
+
+.hero-glow {
+  background:
+    radial-gradient(60% 55% at 50% 0%, rgba(255, 93, 31, 0.35), transparent 65%),
+    radial-gradient(45% 50% at 20% 15%, rgba(138, 59, 255, 0.28), transparent 60%),
+    radial-gradient(45% 45% at 85% 20%, rgba(255, 45, 110, 0.22), transparent 60%),
+    var(--color-ink);
+}
+
+.card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+}
+
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

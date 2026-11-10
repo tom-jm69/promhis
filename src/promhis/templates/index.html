@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Overview — Promhis{% endblock %}
+{% block content %}
+<script id="stats-data" type="application/json">{{ stats_json | safe }}</script>
+
+<div class="page-head">
+  <div>
+    <div class="page-title">Overview</div>
+    <div class="page-sub">Current state and recent history of every alert Promhis has recorded.</div>
+  </div>
+  <div class="ingest-indicator {{ 'stale' if ingest_stale else '' }}">
+    <span class="dot"></span>
+    {% if last_ingest %}Last webhook received {{ last_ingest|timeago }}{% else %}No webhook received yet{% endif %}
+  </div>
+</div>
+
+{% if show_onboarding %}
+<div class="panel onboarding-panel" id="onboarding-checklist">
+  <div class="panel-head">
+    <h2>Get started</h2>
+    <button type="button" class="btn ghost" id="onboarding-dismiss">Dismiss</button>
+  </div>
+  <div class="panel-body">
+    <ul class="onboarding-steps">
+      <li>Point Alertmanager's <code>webhook_configs</code> at <code>POST /api/v1/webhook</code> on this instance.</li>
+      <li><a href="/integrations">Add an integration</a> to forward alerts to Slack, Discord, Teams, or PagerDuty/Opsgenie.</li>
+      {% if can_invite_teammate %}
+      <li><a href="/admin-users">Invite a teammate</a> as another admin.</li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+<script>
+  (function () {
+    try {
+      if (localStorage.getItem("promhis-onboarding-dismissed") === "1") {
+        document.getElementById("onboarding-checklist").style.display = "none";
+      }
+    } catch (e) {}
+    var dismiss = document.getElementById("onboarding-dismiss");
+    if (dismiss) {
+      dismiss.addEventListener("click", function () {
+        document.getElementById("onboarding-checklist").style.display = "none";
+        try {
+          localStorage.setItem("promhis-onboarding-dismissed", "1");
+        } catch (e) {}
+      });
+    }
+  })();
+</script>
+{% endif %}
+
+<div class="gauge-row">
+  <div class="gauge total">
+    <div class="gauge-label">Total</div><div class="gauge-value" data-countup>{{ stats.total_alerts }}</div>
+  </div>
+  <div class="gauge firing">
+    <div class="gauge-label">Firing</div><div class="gauge-value" data-countup>{{ stats.firing }}</div>
+  </div>
+  <div class="gauge resolved">
+    <div class="gauge-label">Resolved</div><div class="gauge-value" data-countup>{{ stats.resolved }}</div>
+  </div>
+  <div class="gauge nodes">
+    <div class="gauge-label">Nodes</div><div class="gauge-value" data-countup>{{ stats.nodes }}</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-head"><h2>Event volume</h2><span class="range">last 14 days</span></div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="volume-chart"></canvas></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h2>By severity</h2></div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="severity-chart"></canvas></div>
+      <div class="legend-row">
+        {% for s in stats.by_severity %}
+        <span class="li"><span class="sw" style="background: var(--{{ 'red' if s.severity in ['critical','page','disaster'] else 'amber' if s.severity in ['warning','warn','degraded'] else 'cyan' if s.severity in ['info','informational','notice'] else 'gray-badge' }})"></span>{{ s.severity }} ({{ s.count }})</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-head"><h2>Top noisy alerts</h2><span class="range">last 14 days</span></div>
+    <div class="panel-body flush">
+      {% if top_noisy %}
+      <table class="register">
+        <thead><tr><th>Alert</th><th>Events</th></tr></thead>
+        <tbody>
+          {% for alertname, count in top_noisy %}
+          <tr><td class="strong">{{ alertname }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="glyph">—</div>No events in this window.</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h2>Mean time to resolution</h2><span class="range">last 14 days</span></div>
+    <div class="panel-body">
+      <div class="gauge-value mttr-value">{{ mttr|secondsduration if mttr is not none else "—" }}</div>
+      <div class="page-sub">Average across every alert resolved in this window.</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <h2>Recent activity</h2>
+    <span class="range">auto-refreshing</span>
+  </div>
+  <div class="panel-body flush">
+    <table class="register">
+      <thead>
+        <tr>
+          <th>State</th><th>Alert</th><th>Severity</th><th>Node</th><th>Duration</th><th>Last seen</th>
+        </tr>
+      </thead>
+      <tbody hx-get="/partials/recent-alerts" hx-trigger="load, every 15s" hx-swap="innerHTML">
+        {% include "partials/alerts_rows.html" %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}API Tokens — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">API Tokens</div>
+    <div class="page-sub">Read-only tokens for pulling data into Grafana or other internal tooling. Audit Log stays session-only.</div>
+  </div>
+</div>
+{% include "partials/api_tokens_panel.html" %}
+{% endblock %}

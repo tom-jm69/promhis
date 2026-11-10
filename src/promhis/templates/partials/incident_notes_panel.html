@@ -1,0 +1,25 @@
+<div id="incident-notes-panel">
+  {% if notes %}
+  <ul class="notes-list">
+    {% for n in notes %}
+    {% include "partials/incident_note_row.html" %}
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="ack-note-text">No incident notes yet.</p>
+  {% endif %}
+
+  {% if can_annotate %}
+  <form hx-post="/alerts/{{ fingerprint }}/annotations" hx-target="#incident-notes-panel" hx-swap="outerHTML"
+        hx-on:htmx:after-request="if(event.detail.successful) this.reset()"
+        method="post" action="/alerts/{{ fingerprint }}/annotations">
+    <div class="field">
+      <label for="note-body">Add a note</label>
+      <textarea id="note-body" name="body" rows="2" class="ack-textarea" required></textarea>
+    </div>
+    <button class="btn" type="submit">Add note</button>
+  </form>
+  {% else %}
+  <p class="ack-note-text">Incident notes require an <span class="sev-tag sev-none">annotations</span> license.</p>
+  {% endif %}
+</div>

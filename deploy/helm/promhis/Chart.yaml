@@ -1,0 +1,19 @@
+apiVersion: v2
+name: promhis
+description: Durable history + dashboard for Prometheus Alertmanager alerts — Alertmanager forgets resolved alerts within minutes, Promhis keeps every fire, flap, and resolution, searchable per node.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+icon: https://raw.githubusercontent.com/tom-jm69/promhis/main/website/public/favicon.svg
+home: https://github.com/tom-jm69/promhis
+sources:
+  - https://github.com/tom-jm69/promhis
+keywords:
+  - prometheus
+  - alertmanager
+  - monitoring
+  - alerting
+  - observability
+maintainers:
+  - name: tom-jm69
+    url: https://github.com/tom-jm69/promhis

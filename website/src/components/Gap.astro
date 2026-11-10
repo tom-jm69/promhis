@@ -1,0 +1,59 @@
+---
+const bad = [
+  "Resolved alerts vanish from the UI within minutes",
+  "No per-node view of what a box has thrown over time",
+  "No record of who or what reached the webhook receiver",
+  "State lives in memory, gone on restart",
+  "No way to tell a flapping alert from a one-off",
+];
+
+const good = [
+  "Every status transition logged permanently, or your retention window",
+  "Full per-node drilldown: every alert a node has ever thrown",
+  "A durable audit log of every ingest attempt, accepted or rejected",
+  "SQLite out of the box, Postgres when you outgrow it",
+  "Flapping detection surfaced right on the alert",
+];
+---
+
+<section id="the-gap" class="border-t border-(--color-line) bg-panel py-24">
+  <div class="mx-auto max-w-6xl px-6">
+    <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-paper md:text-4xl">
+      The gap Alertmanager leaves open
+    </h2>
+    <p class="mt-4 max-w-2xl text-(--color-paper-dim)">
+      Alertmanager is excellent at routing and deduplicating alerts in the moment. It was never built to remember
+      them. That's a separate job. This is that job.
+    </p>
+
+    <div class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="card p-7" data-reveal="gap">
+        <h3 class="text-sm font-semibold text-(--color-paper-dim)">Alertmanager alone</h3>
+        <ul class="mt-5 space-y-4">
+          {bad.map((item) => (
+            <li class="flex items-start gap-3 text-sm text-(--color-paper-dim)">
+              <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M5 5l10 10M15 5L5 15" />
+              </svg>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="card p-7" data-reveal="gap" style="border-color: color-mix(in srgb, var(--color-flame) 35%, var(--color-line))">
+        <h3 class="text-sm font-semibold text-(--color-flame-bright)">With Promhis</h3>
+        <ul class="mt-5 space-y-4">
+          {good.map((item) => (
+            <li class="flex items-start gap-3 text-sm text-paper">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-(--color-flame-bright)" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 10.5l4 4 8-9" />
+              </svg>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

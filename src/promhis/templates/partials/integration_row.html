@@ -1,0 +1,48 @@
+<tr id="integration-row-{{ row.integration.id }}">
+  <td class="strong">
+    <span class="channel-row">
+      {% if row.icon_svg %}<span class="channel-icon">{{ row.icon_svg | safe }}</span>{% endif %}
+      {{ row.display_name }}
+    </span>
+  </td>
+  <td>
+    {% for f in row.masked_config %}
+    <div class="kv-row"><span class="k">{{ f.label }}</span><span class="v">{{ f.value or "—" }}</span></div>
+    {% endfor %}
+  </td>
+  <td>
+    {% if row.integration.enabled %}<span class="sev-tag sev-info">enabled</span>{% else %}<span class="sev-tag sev-none">disabled</span>{% endif %}
+  </td>
+  <td>
+    <form hx-post="/integrations/{{ row.integration.id }}/toggle" hx-target="#integration-row-{{ row.integration.id }}" hx-swap="outerHTML"
+          method="post" action="/integrations/{{ row.integration.id }}/toggle" style="display:inline;">
+      <button class="btn ghost" type="submit">{{ "Disable" if row.integration.enabled else "Enable" }}</button>
+    </form>
+    <form hx-post="/integrations/{{ row.integration.id }}/test" hx-target="#test-result-{{ row.integration.id }}" hx-swap="innerHTML"
+          method="post" action="/integrations/{{ row.integration.id }}/test" style="display:inline;">
+      <button class="btn ghost" type="submit">Send test</button>
+    </form>
+    <span id="test-result-{{ row.integration.id }}" class="test-result-slot"></span>
+    <details style="display:inline-block;">
+      <summary class="btn ghost" style="display:inline-block;">Edit</summary>
+      <form hx-post="/integrations/{{ row.integration.id }}/update" hx-target="#integration-row-{{ row.integration.id }}" hx-swap="outerHTML"
+            method="post" action="/integrations/{{ row.integration.id }}/update">
+        {% for f in row.fields %}
+        <div class="field">
+          <label for="edit-{{ field_prefix(row.integration.channel_type, f.name) }}-{{ row.integration.id }}">{{ f.label }}</label>
+          <input type="{{ f.type }}" id="edit-{{ field_prefix(row.integration.channel_type, f.name) }}-{{ row.integration.id }}"
+                 name="{{ field_prefix(row.integration.channel_type, f.name) }}"
+                 placeholder="{{ 'Leave blank to keep existing' if f.secret else '' }}">
+        </div>
+        {% endfor %}
+
+        <button class="btn" type="submit">Save</button>
+      </form>
+    </details>
+    <form hx-post="/integrations/{{ row.integration.id }}/delete" hx-target="#integration-row-{{ row.integration.id }}" hx-swap="outerHTML"
+          hx-confirm="Delete this integration? This also removes its routing rules."
+          method="post" action="/integrations/{{ row.integration.id }}/delete" style="display:inline;">
+      <button class="btn ghost" type="submit">Delete</button>
+    </form>
+  </td>
+</tr>

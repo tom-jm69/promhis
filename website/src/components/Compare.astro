@@ -1,0 +1,44 @@
+---
+---
+
+<section id="self-host-vs-cloud" class="border-t border-(--color-line) bg-ink py-24">
+  <div class="mx-auto max-w-6xl px-6">
+    <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-paper md:text-4xl">One codebase, one license key</h2>
+    <p class="mt-4 max-w-2xl text-(--color-paper-dim)">
+      Same software, same self-hosted deployment, either way. If a solo engineer needs it to get value out of
+      Promhis, it's free. A license key only unlocks what starts to matter once there's a team, a compliance
+      requirement, or a manager asking for reports — never the things that make the product actually work.
+    </p>
+
+    <div class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="card p-7" data-reveal="compare">
+        <h3 class="text-xl font-bold text-paper">Free</h3>
+        <p class="mt-1 text-sm text-(--color-paper-dim)">Open source. Run it yourself, free, forever.</p>
+        <ul class="mt-6 space-y-3 text-sm text-paper">
+          <li>Ingest, history, dashboard, Postgres — all unlimited</li>
+          <li>Slack / Discord / Teams / PagerDuty / Opsgenie / webhook</li>
+          <li>One personal read-only API token</li>
+          <li>No license file needed — nothing to configure</li>
+        </ul>
+        <a href="https://github.com/tom-jm69/promhis" class="mt-7 inline-block rounded-full border border-(--color-line-bright) px-5 py-2.5 text-sm text-paper transition hover:-translate-y-0.5 hover:border-paper">
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="card p-7" data-reveal="compare" style="border-color: color-mix(in srgb, var(--color-flame) 35%, var(--color-line))">
+        <h3 class="text-xl font-bold text-paper">Licensed</h3>
+        <p class="mt-1 text-sm text-(--color-paper-dim)">The same image, with a signed license file.</p>
+        <ul class="mt-6 space-y-3 text-sm text-paper">
+          <li>Multiple admin users (rbac)</li>
+          <li>More than one API token, scoped (service_tokens)</li>
+          <li>Incident notes on alerts, for postmortems (annotations)</li>
+          <li>Custom instance name and logo (branding)</li>
+          <li>Verified offline — no phone-home, no license server</li>
+        </ul>
+        <a href="#pricing" class="mt-7 inline-block rounded-full bg-(--color-flame) px-5 py-2.5 text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:bg-(--color-flame-bright)">
+          See pricing
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

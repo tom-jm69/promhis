@@ -1,0 +1,134 @@
+---
+const tickCount = 48;
+const firingIndices = new Set([6, 7, 8]);
+const ticks = Array.from({ length: tickCount }, (_, i) => {
+  const angle = (i / tickCount) * 360;
+  const firing = firingIndices.has(i);
+  return { angle, firing };
+});
+
+const dots = [
+  { angle: 38, tone: "flame" },
+  { angle: 204, tone: "resolved" },
+  { angle: 274, tone: "resolved" },
+];
+
+function toXY(angle: number, radius: number) {
+  const rad = (angle - 90) * (Math.PI / 180);
+  return { x: 150 + radius * Math.cos(rad), y: 150 + radius * Math.sin(rad) };
+}
+---
+
+<div class="relative mx-auto aspect-square w-full max-w-[360px]" id="radar" aria-hidden="true">
+  <div class="absolute inset-0 overflow-hidden rounded-full">
+    <div
+      class="radar-sweep absolute inset-[-20%]"
+      style="background: conic-gradient(from 0deg, rgba(255,93,31,0.45), transparent 32%, transparent 100%);"
+    >
+    </div>
+  </div>
+
+  <svg viewBox="0 0 300 300" class="absolute inset-0 h-full w-full">
+    <circle cx="150" cy="150" r="128" fill="none" stroke="var(--color-line)" stroke-width="1" />
+    <circle cx="150" cy="150" r="88" fill="none" stroke="var(--color-line)" stroke-width="1" opacity="0.6" />
+    <circle cx="150" cy="150" r="48" fill="none" stroke="var(--color-line)" stroke-width="1" opacity="0.4" />
+    {ticks.map((t) => {
+      const inner = toXY(t.angle, 118);
+      const outer = toXY(t.angle, 128);
+      return (
+        <line
+          x1={inner.x}
+          y1={inner.y}
+          x2={outer.x}
+          y2={outer.y}
+          stroke={t.firing ? "var(--color-flame-bright)" : "var(--color-line-bright)"}
+          stroke-width={t.firing ? 2.5 : 1.5}
+          stroke-linecap="round"
+          class={t.firing ? "radar-tick-firing" : ""}
+        />
+      );
+    })}
+    {dots.map((d) => {
+      const p = toXY(d.angle, 108);
+      const color = d.tone === "flame" ? "var(--color-flame-bright)" : "var(--color-resolved)";
+      return <circle cx={p.x} cy={p.y} r="5" fill={color} class="radar-dot" data-tone={d.tone} />;
+    })}
+    <circle cx="150" cy="150" r="6" fill="var(--color-flame)" />
+  </svg>
+
+  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+    <span class="text-sm font-semibold text-paper">Always watching</span>
+    <span class="mt-1 text-xs text-(--color-paper-dim)">every node, every flap</span>
+  </div>
+</div>
+
+<style>
+  .radar-sweep {
+    transform-origin: 50% 50%;
+  }
+  .radar-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes radar-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+  .radar-tick-firing {
+    animation: radar-pulse 1.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .radar-tick-firing {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  function start() {
+    const sweep = document.querySelector(".radar-sweep");
+    const dots = document.querySelectorAll(".radar-dot");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+
+    if (sweep) {
+      anime({
+        targets: sweep,
+        rotate: "360",
+        duration: 5200,
+        easing: "linear",
+        loop: true,
+      });
+    }
+
+    const firing = Array.from(dots).filter((d) => (d as HTMLElement).dataset.tone === "flame");
+    const resolved = Array.from(dots).filter((d) => (d as HTMLElement).dataset.tone === "resolved");
+
+    if (firing.length) {
+      anime({
+        targets: firing,
+        scale: [1, 1.9],
+        opacity: [1, 0.35],
+        duration: 850,
+        direction: "alternate",
+        loop: true,
+        easing: "easeInOutSine",
+      });
+    }
+    if (resolved.length) {
+      anime({
+        targets: resolved,
+        scale: [1, 1.25],
+        opacity: [0.9, 0.5],
+        duration: 1600,
+        direction: "alternate",
+        loop: true,
+        delay: anime.stagger(300),
+        easing: "easeInOutSine",
+      });
+    }
+  }
+
+  if (document.readyState !== "loading") start();
+  else document.addEventListener("DOMContentLoaded", start);
+</script>

@@ -1,0 +1,37 @@
+# Example Alertmanager config wiring a webhook_configs receiver at Promhis.
+# Merge the `receivers` entry and routing below into your existing
+# alertmanager.yml — this file is a worked example, not a drop-in config.
+#
+# Promhis's webhook endpoint requires auth — it does not blindly accept
+# alerts. Pick ONE of the two http_config blocks below, matching
+# PROMHIS_WEBHOOK_AUTH_MODE on the Promhis side (default: basic).
+
+route:
+  receiver: default
+  routes:
+    # Keep your existing routing tree; just make sure every branch you want
+    # recorded also reaches (or continues to) the "promhis" receiver, e.g.:
+    - receiver: promhis
+      continue: true  # also keep delivering to whatever this route already notifies
+
+receivers:
+  - name: default
+    # ... your existing receivers ...
+
+  - name: promhis
+    webhook_configs:
+      - url: http://promhis:8000/api/v1/webhook
+        send_resolved: true  # required — this is how Promhis learns an alert cleared
+
+        # Option 1 (default): HTTP Basic — matches PROMHIS_ADMIN_USER / PROMHIS_ADMIN_PASSWORD.
+        http_config:
+          basic_auth:
+            username: admin
+            password: change-me
+
+        # Option 2: Bearer token — set PROMHIS_WEBHOOK_AUTH_MODE=bearer and
+        # PROMHIS_WEBHOOK_TOKEN on the Promhis side, then use this instead of
+        # http_config.basic_auth above:
+        # http_config:
+        #   authorization:
+        #     credentials: change-me-token

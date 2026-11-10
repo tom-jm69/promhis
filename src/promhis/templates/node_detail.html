@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ node }} — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">{{ node }}</div>
+    <div class="page-sub">
+      {% if summary %}{{ summary.firing }} firing · {{ summary.resolved }} resolved · {{ summary.total }} total — last activity {{ summary.last_seen|timeago }}{% else %}No activity recorded.{% endif %}
+    </div>
+  </div>
+  <a class="btn" href="/alerts?node={{ node }}">View in register</a>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>History ledger</h2><span class="range">{{ events|length }} event{{ "s" if events|length != 1 else "" }}</span></div>
+  <div class="panel-body flush">
+    {% if events %}
+    <ul class="ledger">
+      {% for e in events %}
+      <li>
+        <span class="lg-time">{{ e.received_at.strftime("%Y-%m-%d %H:%M") }}</span>
+        <span class="lg-body">
+          <span class="flap state-{{ e.status }}"><span class="chip"></span>{{ e.status }}</span>
+          <a class="node-chip" style="margin-left:8px" href="/alerts/{{ e.fingerprint }}">{{ e.alertname }}</a>
+          <span class="sev-tag {{ e.severity|sevclass }}" style="margin-left:8px">{{ e.severity or "—" }}</span>
+        </span>
+        <span class="lg-dur">
+          <span class="dur-bar" style="width: {{ e.starts_at|durationpct(e.ends_at) }}px;"></span>{{ e.starts_at|duration(e.ends_at) }}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state"><div class="glyph">—</div>No events recorded for this node.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

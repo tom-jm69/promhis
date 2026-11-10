@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Integrations — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">Integrations</div>
+    <div class="page-sub">Configure outbound notification channels. A saved secret is never shown again in full — enter a new value to replace it. Which alerts reach which channel is configured on the <a href="/routing">Routing</a> tab.</div>
+  </div>
+</div>
+
+{% if test_result %}
+<div class="test-result {{ '' if test_result.ok else 'failed' }}">
+  {% if test_result.ok %}
+  Test notification sent to <strong>{{ test_result.display_name }}</strong>.
+  {% else %}
+  Test notification to <strong>{{ test_result.display_name }}</strong> failed: {{ test_result.detail or "unknown error" }}
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="panel">
+  <div class="panel-head"><h2>Add integration</h2></div>
+  <div class="panel-body">
+    <form hx-post="/integrations" hx-target="#integrations-rows" hx-swap="innerHTML"
+          hx-on:htmx:after-request="if(event.detail.successful) { this.reset(); promhisShowIntegrationFields(this.querySelector('input[name=channel_type]:checked').value); }"
+          method="post" action="/integrations" id="add-integration-form">
+      <div class="channel-picker">
+        {% for ct in channel_types %}
+        <label class="channel-option">
+          <input type="radio" name="channel_type" value="{{ ct.key }}" onchange="promhisShowIntegrationFields('{{ ct.key }}')" {% if loop.first %}checked{% endif %}>
+          <span class="channel-icon">{{ ct.icon_svg | safe }}</span>
+          {{ ct.display_name }}
+        </label>
+        {% endfor %}
+      </div>
+      {% for ct in channel_types %}
+      <div class="integration-fieldset" data-channel="{{ ct.key }}" {% if not loop.first %}hidden{% endif %}>
+        {% for f in ct.fields %}
+        <div class="field">
+          <label for="{{ field_prefix(ct.key, f.name) }}">{{ f.label }}</label>
+          <input type="{{ f.type }}" id="{{ field_prefix(ct.key, f.name) }}" name="{{ field_prefix(ct.key, f.name) }}">
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <button class="btn" type="submit">Add integration</button>
+    </form>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>Configured integrations</h2></div>
+  <div class="panel-body flush">
+    <table class="register">
+      <thead>
+        <tr><th>Channel</th><th>Config</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody id="integrations-rows">
+        {% include "partials/integrations_rows.html" %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function promhisShowIntegrationFields(channelType) {
+  document.querySelectorAll('.integration-fieldset').forEach(function (el) {
+    el.hidden = el.dataset.channel !== channelType;
+  });
+}
+</script>
+{% endblock %}

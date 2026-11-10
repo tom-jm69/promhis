@@ -1,0 +1,38 @@
+<div id="ledger-panel">
+<div class="panel">
+  <div class="panel-head"><h2>History ledger</h2></div>
+  <div class="panel-body flush">
+    {% if events %}
+    <ul class="ledger">
+      {% for e in events %}
+      <li>
+        <span class="lg-time">{{ e.received_at.strftime("%Y-%m-%d %H:%M") }}</span>
+        <span class="lg-body">
+          <span class="flap state-{{ e.status }}"><span class="chip"></span>{{ e.status }}</span>
+          {% if e.annotations.get("summary") %}<span class="ann-key"> — {{ e.annotations.get("summary") }}</span>{% endif %}
+        </span>
+        <span class="lg-dur">
+          <span class="dur-bar" style="width: {{ e.starts_at|durationpct(e.ends_at) }}px;"></span>{{ e.starts_at|duration(e.ends_at) }}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state"><div class="glyph">—</div>No events recorded.</div>
+    {% endif %}
+  </div>
+  {% if total > page_size %}
+  <div class="pagination">
+    <span>{{ total }} event{{ "s" if total != 1 else "" }} — page {{ page }}</span>
+    <div class="links">
+      {% if has_prev %}
+      <a class="page-btn" hx-get="/alerts/{{ alert.fingerprint }}?page={{ page - 1 }}" hx-target="#ledger-panel" hx-select="#ledger-panel" hx-swap="outerHTML" hx-push-url="true" href="/alerts/{{ alert.fingerprint }}?page={{ page - 1 }}">‹ Prev</a>
+      {% else %}<span class="page-btn disabled">‹ Prev</span>{% endif %}
+      {% if has_next %}
+      <a class="page-btn" hx-get="/alerts/{{ alert.fingerprint }}?page={{ page + 1 }}" hx-target="#ledger-panel" hx-select="#ledger-panel" hx-swap="outerHTML" hx-push-url="true" href="/alerts/{{ alert.fingerprint }}?page={{ page + 1 }}">Next ›</a>
+      {% else %}<span class="page-btn disabled">Next ›</span>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+</div>

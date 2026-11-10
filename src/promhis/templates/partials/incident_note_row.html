@@ -1,0 +1,11 @@
+<li class="note-item">
+  <div class="note-meta">
+    <span>{{ n.author }} — {{ n.created_at|timeago }}</span>
+    <form hx-post="/alerts/{{ n.fingerprint }}/annotations/{{ n.id }}/delete" hx-target="#incident-notes-panel"
+          hx-swap="outerHTML" hx-confirm="Delete this note? This can't be undone."
+          method="post" action="/alerts/{{ n.fingerprint }}/annotations/{{ n.id }}/delete">
+      <button class="btn ghost note-delete" type="submit">Delete</button>
+    </form>
+  </div>
+  <p class="note-body">{{ n.body }}</p>
+</li>

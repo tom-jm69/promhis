@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Audit Log — Promhis{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">Audit Log</div>
+    <div class="page-sub">Every request to the webhook ingest endpoint — accepted or rejected.</div>
+  </div>
+</div>
+{% include "partials/audit_log_panel.html" %}
+{% endblock %}

@@ -1,0 +1,70 @@
+{% macro sort_link(field, label, default_desc=False) %}
+{%- set is_asc = sort == field -%}
+{%- set is_desc = sort == ('-' ~ field) -%}
+{%- if is_desc -%}{%- set next = field -%}
+{%- elif is_asc -%}{%- set next = '-' ~ field -%}
+{%- else -%}{%- set next = ('-' ~ field) if default_desc else field -%}
+{%- endif -%}
+{%- set target = "/alerts?sort=" ~ (next | urlencode) ~ "&status=" ~ (filters.status | urlencode) ~ "&severity=" ~ (filters.severity | urlencode) ~ "&node=" ~ (filters.node | urlencode) ~ "&search=" ~ (filters.search | urlencode) ~ "&group=" ~ (group | urlencode) -%}
+<a class="sort-link" hx-get="{{ target }}" hx-target="#alerts-panel" hx-select="#alerts-panel" hx-swap="outerHTML" hx-push-url="true" href="{{ target }}">{{ label }}{% if is_asc %}<span class="sort-arrow">&#9650;</span>{% elif is_desc %}<span class="sort-arrow">&#9660;</span>{% endif %}</a>
+{%- endmacro %}
+<div id="alerts-panel">
+  <form class="filter-bar" hx-get="/alerts" hx-target="#alerts-panel" hx-select="#alerts-panel" hx-swap="outerHTML" hx-push-url="true">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="hidden" name="group" value="{{ group }}">
+    <input type="text" name="search" placeholder="Search alertname or node…" value="{{ filters.search }}">
+    <select name="status" onchange="this.form.requestSubmit()">
+      <option value="" {% if not filters.status %}selected{% endif %}>Any status</option>
+      <option value="firing" {% if filters.status == "firing" %}selected{% endif %}>Firing</option>
+      <option value="silenced" {% if filters.status == "silenced" %}selected{% endif %}>Silenced</option>
+      <option value="resolved" {% if filters.status == "resolved" %}selected{% endif %}>Resolved</option>
+    </select>
+    <select name="severity" onchange="this.form.requestSubmit()">
+      <option value="" {% if not filters.severity %}selected{% endif %}>Any severity</option>
+      <option value="critical" {% if filters.severity == "critical" %}selected{% endif %}>Critical</option>
+      <option value="warning" {% if filters.severity == "warning" %}selected{% endif %}>Warning</option>
+      <option value="info" {% if filters.severity == "info" %}selected{% endif %}>Info</option>
+    </select>
+    <input type="text" name="node" list="node-names" placeholder="Node…" value="{{ filters.node }}">
+    <datalist id="node-names">
+      {% for n in node_names %}<option value="{{ n }}"></option>{% endfor %}
+    </datalist>
+    <button class="btn" type="submit">Filter</button>
+    {% if filters.status or filters.severity or filters.node or filters.search or group %}
+    <a class="btn ghost" hx-get="/alerts" hx-target="#alerts-panel" hx-select="#alerts-panel" hx-swap="outerHTML" hx-push-url="true" href="/alerts">Clear</a>
+    {% endif %}
+    <a class="btn ghost" href="/api/v1/alerts/export.csv?sort={{ sort | urlencode }}&status={{ filters.status | urlencode }}&severity={{ filters.severity | urlencode }}&node={{ filters.node | urlencode }}&search={{ filters.search | urlencode }}&group={{ group | urlencode }}">Download CSV</a>
+  </form>
+  {% if group %}
+  <div class="filter-bar" style="border-top:1px solid var(--border);">
+    <span class="node-chip">Alertmanager group: {{ group }}</span>
+  </div>
+  {% endif %}
+  <table class="register">
+    <thead>
+      <tr>
+        <th>{{ sort_link('status', 'State') }}</th>
+        <th>{{ sort_link('alertname', 'Alert') }}</th>
+        <th>{{ sort_link('severity', 'Severity') }}</th>
+        <th>{{ sort_link('node', 'Node') }}</th>
+        <th>Duration</th>
+        <th>{{ sort_link('last_seen', 'Last seen', default_desc=True) }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% include "partials/alerts_rows.html" %}
+    </tbody>
+  </table>
+  <div class="pagination">
+    <span>{{ total }} alert{{ "s" if total != 1 else "" }} — page {{ page }}</span>
+    <div class="links">
+      {% set qs = "&sort=" ~ (sort | urlencode) ~ "&status=" ~ (filters.status | urlencode) ~ "&severity=" ~ (filters.severity | urlencode) ~ "&node=" ~ (filters.node | urlencode) ~ "&search=" ~ (filters.search | urlencode) ~ "&group=" ~ (group | urlencode) %}
+      {% if has_prev %}
+      <a class="page-btn" hx-get="/alerts?page={{ page - 1 }}{{ qs }}" hx-target="#alerts-panel" hx-select="#alerts-panel" hx-swap="outerHTML" hx-push-url="true" href="/alerts?page={{ page - 1 }}{{ qs }}">‹ Prev</a>
+      {% else %}<span class="page-btn disabled">‹ Prev</span>{% endif %}
+      {% if has_next %}
+      <a class="page-btn" hx-get="/alerts?page={{ page + 1 }}{{ qs }}" hx-target="#alerts-panel" hx-select="#alerts-panel" hx-swap="outerHTML" hx-push-url="true" href="/alerts?page={{ page + 1 }}{{ qs }}">Next ›</a>
+      {% else %}<span class="page-btn disabled">Next ›</span>{% endif %}
+    </div>
+  </div>
+</div>

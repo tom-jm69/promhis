@@ -1,0 +1,5 @@
+{% for alert in alerts %}{% include "partials/_alert_row.html" %}{% else %}
+<tr class="empty-row"><td colspan="6">
+  <div class="empty-state"><div class="glyph">—</div>No alerts received yet.</div>
+</td></tr>
+{% endfor %}

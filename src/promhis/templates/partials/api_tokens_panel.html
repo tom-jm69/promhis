@@ -1,0 +1,47 @@
+<div id="tokens-panel">
+{% if new_token %}
+<div class="panel">
+  <div class="panel-head"><h2>New token created</h2></div>
+  <div class="panel-body">
+    <p class="ack-note-text">Copy it now — it won't be shown again.</p>
+    <div class="label-pill new-token-display">{{ new_token }}</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="panel">
+  <div class="panel-head"><h2>Create a token</h2></div>
+  <div class="panel-body">
+    {% if at_free_limit %}
+    <p class="ack-note-text">Free tier allows one active token — revoke it below to create a new one, or a <span class="sev-tag sev-none">service_tokens</span> license to create more.</p>
+    {% else %}
+    <form hx-post="/api-tokens" hx-target="#tokens-panel" hx-swap="outerHTML"
+          hx-on:htmx:after-request="if(event.detail.successful) this.reset()"
+          method="post" action="/api-tokens" class="filter-bar inline-filter-bar">
+      <input type="text" name="name" placeholder="Name (e.g. &quot;Grafana&quot;)" required>
+      <button class="btn" type="submit">Create token</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>Existing tokens</h2></div>
+  <div class="panel-body flush">
+    <table class="register">
+      <thead>
+        <tr><th>Name</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for t in tokens %}
+        {% include "partials/api_token_row.html" %}
+        {% else %}
+        <tr class="empty-row"><td colspan="5">
+          <div class="empty-state"><div class="glyph">—</div>No API tokens yet.</div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>

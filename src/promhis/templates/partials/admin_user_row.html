@@ -1,0 +1,15 @@
+<tr id="admin-user-row-{{ u.id }}">
+  <td class="strong">{{ u.username }}{% if u.is_bootstrap %} <span class="label-pill">bootstrap</span>{% endif %}</td>
+  <td>{{ u.created_at|timeago }}</td>
+  <td>{{ u.last_login_at|timeago if u.last_login_at else "never" }}</td>
+  <td>{% if u.is_active %}<span class="sev-tag sev-info">active</span>{% else %}<span class="sev-tag sev-none">disabled</span>{% endif %}</td>
+  <td>
+    {% if not u.is_bootstrap %}
+    <form hx-post="/admin-users/{{ u.id }}/delete" hx-target="#admin-users-panel" hx-swap="outerHTML"
+          hx-confirm="Delete this admin account? They won't be able to log in anymore."
+          method="post" action="/admin-users/{{ u.id }}/delete" style="margin:0;">
+      <button class="btn ghost" type="submit">Delete</button>
+    </form>
+    {% endif %}
+  </td>
+</tr>

@@ -1,0 +1,62 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "website/**"
+        ],
+        "createdAt": "2026-11-05T14:45:20.929Z",
+        "reason": "ROADMAP.md §10: marketing site is an intentionally separate visual world from the dashboard, not governed by DESIGN.md's token system"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": [
+          "website/**"
+        ],
+        "createdAt": "2026-11-05T14:45:20.940Z",
+        "reason": "ROADMAP.md §10: marketing site is an intentionally separate visual world from the dashboard, not governed by DESIGN.md's token system"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "website/**"
+        ],
+        "createdAt": "2026-11-05T14:45:20.949Z",
+        "reason": "ROADMAP.md §10: marketing site is an intentionally separate visual world from the dashboard, not governed by DESIGN.md's token system"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": [
+          "website/**"
+        ],
+        "createdAt": "2026-11-05T14:45:20.959Z",
+        "reason": "ROADMAP.md §10: marketing site is an intentionally separate visual world from the dashboard, not governed by DESIGN.md's token system"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          "src/promhis/templates/base.html"
+        ],
+        "createdAt": "2026-11-08T20:22:21.721Z",
+        "reason": "flagged .flap status/severity badge (style.css): single uppercase word in a small pill, never multi-line body copy — the 1.3-1.7x multi-line readability guidance doesn't apply"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "files": [
+          "website/src/layouts/Layout.astro"
+        ],
+        "createdAt": "2026-11-09T16:46:00.437Z",
+        "reason": "user explicitly pinned astro.build as the visual reference to match; Inter matches that reference's clean grotesque type voice. Disclosed in surface brief OWN-WORLD line, not an oversight."
+      }
+    ]
+  }
+}
