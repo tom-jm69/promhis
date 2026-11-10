@@ -1,0 +1,39 @@
+<div class="field">
+  <label>Scheduled database dump</label>
+  <div class="toggle-field">
+    <label class="toggle-switch">
+      {% if db_dump_enabled_locked %}
+      <input type="checkbox" disabled {% if db_dump_enabled %}checked{% endif %}>
+      {% else %}
+      <input type="checkbox" {% if db_dump_enabled %}checked{% endif %} onchange="promhisToggleDbDumpEnabled(this)">
+      {% endif %}
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">{{ "Enabled" if db_dump_enabled else "Disabled" }}</span>
+  </div>
+  {% if db_dump_enabled_locked %}
+  <div class="hint">Set via <code>PROMHIS_DB_DUMP_ENABLED</code> — edit <code>.env</code> to change.</div>
+  {% endif %}
+  <div class="hint">Writes a timestamped <code>pg_dump</code> file to <code>{{ db_dump_path }}</code> every {{ db_dump_interval_hours }}h — set via <code>PROMHIS_DB_DUMP_PATH</code>/<code>PROMHIS_DB_DUMP_INTERVAL_HOURS</code>. That path needs to be a mounted volume for dumps to outlive the container. A dump is skipped entirely (not even started) whenever less than {{ db_dump_min_free_mb }}MiB is free there (<code>PROMHIS_DB_DUMP_MIN_FREE_MB</code>).</div>
+</div>
+<script>
+  function promhisSyncDbDumpToggleUI(checkbox) {
+    const label = checkbox.closest(".toggle-field").querySelector(".toggle-label");
+    if (label) label.textContent = checkbox.checked ? "Enabled" : "Disabled";
+  }
+
+  function promhisToggleDbDumpEnabled(checkbox) {
+    const next = checkbox.checked;
+    promhisSyncDbDumpToggleUI(checkbox);
+    fetch("/settings/db-dump/enabled", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: next ? "db_dump_enabled=on" : "",
+    }).then((r) => {
+      if (!r.ok) throw new Error("save failed");
+    }).catch(() => {
+      checkbox.checked = !next;
+      promhisSyncDbDumpToggleUI(checkbox);
+    });
+  }
+</script>

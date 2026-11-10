@@ -22,7 +22,8 @@ This project has no supported native/host run path. Never run `uv run promhis`, 
 - `src/promhis/routers/` — `webhook.py` (ingest), `alerts.py`/`nodes.py`/`stats.py` (JSON API backing the dashboard), `dashboard.py` (server-rendered pages + login/logout).
 - `src/promhis/templating.py` — Jinja2 setup + custom filters (`timeago`, `duration`, `durationpct`, `sevclass`).
 - `src/promhis/poller.py` — optional backup sync against a live Alertmanager's `/api/v2/alerts`; the webhook is the primary ingest path, this is a bootstrap/backup, not a replacement.
-- `src/promhis/main.py` — app factory, lifespan (DB init, poller task, retention pruning task).
+- `src/promhis/db_dump.py` — optional scheduled `pg_dump` backups, off by default; skips (never starts pg_dump) if free disk space is below a configured floor.
+- `src/promhis/main.py` — app factory, lifespan (DB init, poller/retention/db-dump tasks), and app-wide exception handlers (`SQLAlchemyError` → 503, generic `Exception` → 500, both logged).
 
 ## Conventions
 

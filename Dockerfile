@@ -37,13 +37,20 @@ RUN uv run pytest -q
 FROM base AS runtime
 RUN uv sync --locked --no-dev
 
+# pg_dump client only — for the optional scheduled database dump
+# (db_dump.py), off by default. Not the full `postgresql` server package.
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PATH="/app/.venv/bin:$PATH"
 
 # A numeric USER (not just a name) so Kubernetes' `runAsNonRoot` pod security
 # check — which reads the image's own USER, not /etc/passwd — can actually
 # verify it without needing a matching runAsUser override in every caller.
 RUN useradd --create-home --shell /bin/false --uid 1000 promhis \
-    && chown -R promhis:promhis /app
+    && chown -R promhis:promhis /app \
+    && mkdir -p /var/lib/promhis/dumps \
+    && chown -R promhis:promhis /var/lib/promhis
 USER 1000
 
 EXPOSE 8000

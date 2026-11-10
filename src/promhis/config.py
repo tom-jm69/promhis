@@ -86,5 +86,19 @@ class Settings(BaseSettings):
     smtp_from: str = "promhis@localhost"
     smtp_use_tls: bool = True
 
+    # Scheduled Postgres dumps (pg_dump), off by default. "Enabled" can also
+    # be flipped at runtime from the Settings page when PROMHIS_DB_DUMP_ENABLED
+    # is unset (see auth.effective_db_dump_enabled) — path and interval are
+    # env-only, same as every other filesystem/scheduling knob here. Writes a
+    # timestamped .sql file to db_dump_path; that directory needs to be a
+    # mounted volume for dumps to outlive the container.
+    db_dump_enabled: bool = False
+    db_dump_path: str = "/var/lib/promhis/dumps"
+    db_dump_interval_hours: int = 24
+    # Skip a scheduled dump entirely (not even start pg_dump) rather than
+    # risk writing a truncated file or filling the volume the rest of the
+    # app needs — see db_dump.py.
+    db_dump_min_free_mb: int = 500
+
 
 settings = Settings()

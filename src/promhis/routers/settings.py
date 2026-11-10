@@ -17,12 +17,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from promhis import crud
 from promhis.auth import (
+    db_dump_setting_env_locked,
+    effective_db_dump_enabled,
     effective_metrics_allowed_ips,
     effective_metrics_enabled,
     effective_metrics_user,
     metrics_setting_env_locked,
     require_login,
 )
+from promhis.config import settings
 from promhis.db import get_session
 from promhis.notifications.base import mask_secret
 from promhis.templating import templates
@@ -41,6 +44,11 @@ async def _settings_context(session: AsyncSession) -> dict:
         "metrics_password_locked": metrics_setting_env_locked("metrics_password"),
         "metrics_allowed_ips": ", ".join(await effective_metrics_allowed_ips(session)),
         "metrics_allowed_ips_locked": metrics_setting_env_locked("metrics_allowed_ips"),
+        "db_dump_enabled": await effective_db_dump_enabled(session),
+        "db_dump_enabled_locked": db_dump_setting_env_locked(),
+        "db_dump_path": settings.db_dump_path,
+        "db_dump_interval_hours": settings.db_dump_interval_hours,
+        "db_dump_min_free_mb": settings.db_dump_min_free_mb,
     }
 
 
@@ -111,3 +119,14 @@ async def clear_metrics_password(session: AsyncSession = Depends(get_session)) -
     if not metrics_setting_env_locked("metrics_password"):
         await crud.set_app_setting(session, "metrics_password", None)
     return RedirectResponse(url="/settings", status_code=303)
+
+
+@router.post("/settings/db-dump/enabled", response_model=None, dependencies=[Depends(require_login)])
+async def update_db_dump_enabled(
+    db_dump_enabled: str | None = Form(None),
+    session: AsyncSession = Depends(get_session),
+) -> JSONResponse:
+    if db_dump_setting_env_locked():
+        raise HTTPException(status_code=403, detail="db_dump_enabled is set via PROMHIS_DB_DUMP_ENABLED")
+    await crud.set_app_setting(session, "db_dump_enabled", "true" if db_dump_enabled is not None else "false")
+    return JSONResponse({"enabled": db_dump_enabled is not None})

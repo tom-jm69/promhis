@@ -173,6 +173,22 @@ async def effective_metrics_allowed_ips(session: AsyncSession) -> tuple[str, ...
     return tuple(part.strip() for part in raw.split(",") if part.strip())
 
 
+def db_dump_setting_env_locked() -> bool:
+    """Same "env always wins" precedent as `metrics_setting_env_locked` —
+    true if `PROMHIS_DB_DUMP_ENABLED` is set in the real process environment.
+    """
+    return "PROMHIS_DB_DUMP_ENABLED" in os.environ
+
+
+async def effective_db_dump_enabled(session: AsyncSession) -> bool:
+    if db_dump_setting_env_locked():
+        return settings.db_dump_enabled
+    raw = await crud.get_app_setting(session, "db_dump_enabled")
+    if raw is None:
+        return settings.db_dump_enabled  # unset means off, same as config.py's default
+    return raw == "true"
+
+
 def _metrics_client_ip_allowed(request: Request, allowed_ips: tuple[str, ...]) -> bool:
     """True if `allowed_ips` is empty (no restriction) or the request's
     client IP matches one of its entries (plain IPs or CIDRs).

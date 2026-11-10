@@ -181,3 +181,40 @@ async def test_settings_env_locked_field_rejects_db_override(
     )
     page_after = await authed_client.get("/settings")
     assert "someone-else" not in page_after.text
+
+
+async def test_settings_page_renders_db_dump_disabled_by_default(authed_client: AsyncClient) -> None:
+    response = await authed_client.get("/settings")
+    assert response.status_code == 200
+    assert 'onchange="promhisToggleDbDumpEnabled(this)"' in response.text
+    assert 'checked onchange="promhisToggleDbDumpEnabled(this)"' not in response.text
+
+
+async def test_settings_enable_and_disable_db_dump(authed_client: AsyncClient) -> None:
+    enabled = await authed_client.post("/settings/db-dump/enabled", data={"db_dump_enabled": "on"})
+    assert enabled.status_code == 200
+    assert enabled.json() == {"enabled": True}
+
+    page = await authed_client.get("/settings")
+    assert 'checked onchange="promhisToggleDbDumpEnabled(this)"' in page.text
+
+    disabled = await authed_client.post("/settings/db-dump/enabled", data={})
+    assert disabled.status_code == 200
+    assert disabled.json() == {"enabled": False}
+
+    page_after = await authed_client.get("/settings")
+    assert 'checked onchange="promhisToggleDbDumpEnabled(this)"' not in page_after.text
+
+
+async def test_settings_db_dump_enabled_env_locked(
+    authed_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("PROMHIS_DB_DUMP_ENABLED", "true")
+    monkeypatch.setattr(settings, "db_dump_enabled", True)
+
+    page = await authed_client.get("/settings")
+    assert "PROMHIS_DB_DUMP_ENABLED" in page.text
+    assert 'onchange="promhisToggleDbDumpEnabled(this)"' not in page.text
+
+    locked = await authed_client.post("/settings/db-dump/enabled", data={})
+    assert locked.status_code == 403

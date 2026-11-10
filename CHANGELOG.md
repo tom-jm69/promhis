@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- Optional scheduled database dumps (`pg_dump`), off by default — `PROMHIS_DB_DUMP_ENABLED`/`_PATH`/`_INTERVAL_HOURS`/`_MIN_FREE_MB`, also toggleable from the Settings page. A dump is skipped entirely (never started) if free disk space is below the configured floor.
+
 ### Changed
 
 - Multiple admin users, custom branding, and incident notes are now free and uncapped for everyone (no longer require a license).

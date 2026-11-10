@@ -36,6 +36,10 @@ Every setting is an environment variable (`PROMHIS_*`) or a line in `.env`. See 
 
 Postgres (via `asyncpg`) is the only supported storage. `docker-compose.yml` bundles a `postgres:16-alpine` container by default; point `PROMHIS_DATABASE_URL` at your own instance instead if you'd rather not run it (comment out the `postgres` service too, then).
 
+## Database dumps (optional)
+
+Off by default — set `PROMHIS_DB_DUMP_ENABLED=true` (or toggle it from the **Settings** page) to have Promhis write a timestamped `pg_dump` `.sql` file to `PROMHIS_DB_DUMP_PATH` on a schedule. `docker-compose.yml` already mounts a named volume at the default path; the dump is skipped (not attempted) whenever free space there drops below `PROMHIS_DB_DUMP_MIN_FREE_MB`. See `configuration.md`.
+
 ## Upgrading
 
 Pull the new image and `docker compose up --build` again — migrations, if any are ever needed, run automatically on startup (SQLModel's `create_all` today; there's no destructive schema migration path yet since the schema has only grown). If you're upgrading past the point outbound notification env vars were replaced by the Integrations page, see the migration note at the top of [`notifications.md`](notifications.md).

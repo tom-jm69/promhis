@@ -16,6 +16,7 @@ from promhis import crud
 from promhis.auth import hash_password
 from promhis.config import settings
 from promhis.db import async_session_factory, init_db
+from promhis.db_dump import run_db_dump_scheduler
 from promhis.digest import run_digest_scheduler
 from promhis.poller import run_poller
 from promhis.routers import (
@@ -68,7 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await crud.sync_bootstrap_admin(
             session, username=settings.admin_user, password_hash=hash_password(settings.admin_password)
         )
-    tasks = [asyncio.create_task(run_poller())]
+    tasks = [asyncio.create_task(run_poller()), asyncio.create_task(run_db_dump_scheduler())]
     if settings.retention_days > 0:
         tasks.append(asyncio.create_task(_retention_loop()))
     if settings.digest_to and settings.smtp_host:

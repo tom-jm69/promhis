@@ -15,6 +15,13 @@ services:
       PROMHIS_SESSION_SECRET: ${PROMHIS_SESSION_SECRET:?set a random secret in .env}
       PROMHIS_RETENTION_DAYS: ${PROMHIS_RETENTION_DAYS:-90}
       PROMHIS_DATABASE_URL: ${PROMHIS_DATABASE_URL:-postgresql+asyncpg://promhis:${POSTGRES_PASSWORD:-promhis}@postgres:5432/promhis}
+    volumes:
+      # Mounted regardless of whether PROMHIS_DB_DUMP_ENABLED is set —
+      # harmless and empty if the feature stays off, but means turning it on
+      # later (even from the Settings page, no restart) doesn't also require
+      # adding a volume at that point. Matches the image's default
+      # PROMHIS_DB_DUMP_PATH; change both together if you override it.
+      - promhis-dumps:/var/lib/promhis/dumps
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,3 +60,4 @@ services:
 
 volumes:
   postgres-data:
+  promhis-dumps:

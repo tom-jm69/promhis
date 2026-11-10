@@ -77,6 +77,17 @@ Opt-in — off entirely unless both `digest_to` and `smtp_host` are set. Complem
 | `PROMHIS_BRAND_NAME` | `Promhis` | Custom instance name shown in the navbar and page `<title>`. |
 | `PROMHIS_BRAND_LOGO_PATH` | unset | Path to a logo image file (mounted into the container) served at `/brand/logo` and shown in the navbar in place of the flame mark. |
 
+## Database dump (optional)
+
+Off by default. Writes a timestamped `pg_dump` `.sql` file on a schedule — a plain Postgres backup, restorable with `psql`/`pg_restore` independent of Promhis itself.
+
+| Variable | Default | Notes |
+|---|---|---|
+| `PROMHIS_DB_DUMP_ENABLED` | `false` | Also toggleable at runtime from the **Settings** page when this env var is unset — same env-wins pattern as the `/metrics` settings above. |
+| `PROMHIS_DB_DUMP_PATH` | `/var/lib/promhis/dumps` | Directory dumps are written into. **Needs to be a mounted volume** — `docker-compose.yml` already mounts one at this default path; otherwise dumps live on the container's ephemeral filesystem and vanish on restart. |
+| `PROMHIS_DB_DUMP_INTERVAL_HOURS` | `24` | How often to dump. |
+| `PROMHIS_DB_DUMP_MIN_FREE_MB` | `500` | Safety floor: a dump is skipped entirely (pg_dump is never even started) whenever free space at `db_dump_path` is below this — never risk writing a truncated backup or filling the volume. |
+
 ## See also
 
 - `security-and-auditing.md` — the webhook auth schemes and audit log in detail.

@@ -84,6 +84,10 @@ publicBaseUrl: "https://promhis.example.com"
 
 `metrics.enabled` is on by default (unauthenticated, same posture as `/healthz`). If you run the Prometheus Operator, set `metrics.serviceMonitor.enabled: true` to get a `ServiceMonitor` scraping it; set `metrics.user`/`metrics.password` (or their `existingSecret` form) first if you also want `/metrics` to require Basic auth, in which case the `ServiceMonitor` is generated with matching `basicAuth`.
 
+## Scheduled database dumps
+
+Off by default (see `docs/configuration.md`'s "Database dump" section). This chart has no first-class field for it — set `PROMHIS_DB_DUMP_ENABLED`/`PROMHIS_DB_DUMP_PATH`/`PROMHIS_DB_DUMP_INTERVAL_HOURS` via `extraEnv`, and mount a volume at that path via `extraVolumes`/`extraVolumeMounts` (same "bring your own volume" pattern as `branding.logoPath`) — otherwise dumps land on the pod's ephemeral filesystem and vanish on the next restart.
+
 ## Testing this chart locally (kind)
 
 ```bash
