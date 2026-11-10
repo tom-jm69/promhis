@@ -67,6 +67,146 @@
   <div class="panel-head"><h2>Database dump</h2></div>
   <div class="panel-body">
     {% include "partials/db_dump_enabled_panel.html" %}
+
+    <div class="field-divider">
+      <form method="post" action="/settings/db-dump/config">
+        <div class="field">
+          <label for="db_dump_path">Dump directory</label>
+          {% if db_dump_path_locked %}
+          <input type="text" value="{{ db_dump_path }}" disabled>
+          <div class="hint">Set via <code>PROMHIS_DB_DUMP_PATH</code> — edit <code>.env</code> to change.</div>
+          {% else %}
+          <input type="text" id="db_dump_path" name="db_dump_path" value="{{ db_dump_path }}" required>
+          <div class="hint">Needs to be a mounted volume to outlive the container.</div>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="db_dump_interval_hours">Interval (hours)</label>
+          {% if db_dump_interval_hours_locked %}
+          <input type="number" value="{{ db_dump_interval_hours }}" disabled>
+          <div class="hint">Set via <code>PROMHIS_DB_DUMP_INTERVAL_HOURS</code> — edit <code>.env</code> to change.</div>
+          {% else %}
+          <input type="number" id="db_dump_interval_hours" name="db_dump_interval_hours" value="{{ db_dump_interval_hours }}" min="1" required>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="db_dump_min_free_mb">Minimum free space (MiB)</label>
+          {% if db_dump_min_free_mb_locked %}
+          <input type="number" value="{{ db_dump_min_free_mb }}" disabled>
+          <div class="hint">Set via <code>PROMHIS_DB_DUMP_MIN_FREE_MB</code> — edit <code>.env</code> to change.</div>
+          {% else %}
+          <input type="number" id="db_dump_min_free_mb" name="db_dump_min_free_mb" value="{{ db_dump_min_free_mb }}" min="0" required>
+          <div class="hint">A dump is skipped entirely (pg_dump never starts) below this.</div>
+          {% endif %}
+        </div>
+
+        {% if not (db_dump_path_locked and db_dump_interval_hours_locked and db_dump_min_free_mb_locked) %}
+        <button type="submit" class="btn">Save</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>Daily digest email</h2></div>
+  <div class="panel-body">
+    <p class="ack-note-text">{% if digest_configured %}Sends a daily rollup to the address below.{% else %}Off until a recipient and an SMTP host are both set.{% endif %}</p>
+    <form method="post" action="/settings/digest/config">
+      <div class="field">
+        <label for="digest_to">Recipient address</label>
+        {% if digest_to_locked %}
+        <input type="email" value="{{ digest_to or '' }}" disabled>
+        <div class="hint">Set via <code>PROMHIS_DIGEST_TO</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="email" id="digest_to" name="digest_to" value="{{ digest_to or '' }}" placeholder="unset (digest off)">
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="digest_hour_utc">Send hour (UTC)</label>
+        {% if digest_hour_utc_locked %}
+        <input type="number" value="{{ digest_hour_utc }}" disabled>
+        <div class="hint">Set via <code>PROMHIS_DIGEST_HOUR_UTC</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="number" id="digest_hour_utc" name="digest_hour_utc" value="{{ digest_hour_utc }}" min="0" max="23" required>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="smtp_host">SMTP host</label>
+        {% if smtp_host_locked %}
+        <input type="text" value="{{ smtp_host or '' }}" disabled>
+        <div class="hint">Set via <code>PROMHIS_SMTP_HOST</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="text" id="smtp_host" name="smtp_host" value="{{ smtp_host or '' }}" placeholder="unset (digest off)">
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="smtp_port">SMTP port</label>
+        {% if smtp_port_locked %}
+        <input type="number" value="{{ smtp_port }}" disabled>
+        <div class="hint">Set via <code>PROMHIS_SMTP_PORT</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="number" id="smtp_port" name="smtp_port" value="{{ smtp_port }}" min="1" max="65535" required>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="smtp_user">SMTP username</label>
+        {% if smtp_user_locked %}
+        <input type="text" value="{{ smtp_user or '' }}" disabled>
+        <div class="hint">Set via <code>PROMHIS_SMTP_USER</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="text" id="smtp_user" name="smtp_user" value="{{ smtp_user or '' }}" placeholder="unset (no SMTP auth)">
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="smtp_password">SMTP password</label>
+        {% if smtp_password_locked %}
+        <input type="password" value="••••••••" disabled>
+        <div class="hint">Set via <code>PROMHIS_SMTP_PASSWORD</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="password" id="smtp_password" name="smtp_password" autocomplete="new-password"
+               placeholder="{% if smtp_password_masked %}leave blank to keep current ({{ smtp_password_masked }}){% else %}leave blank for none{% endif %}">
+        {% if smtp_password_masked %}
+        <div class="hint">Currently set ({{ smtp_password_masked }}). <button type="submit" formaction="/settings/digest/clear-password" class="btn ghost" style="padding:2px 8px;font-size:11.5px;">Clear</button></div>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="smtp_from">From address</label>
+        {% if smtp_from_locked %}
+        <input type="text" value="{{ smtp_from }}" disabled>
+        <div class="hint">Set via <code>PROMHIS_SMTP_FROM</code> — edit <code>.env</code> to change.</div>
+        {% else %}
+        <input type="text" id="smtp_from" name="smtp_from" value="{{ smtp_from }}">
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label>
+          {% if smtp_use_tls_locked %}
+          <input type="checkbox" disabled {% if smtp_use_tls %}checked{% endif %}>
+          {% else %}
+          <input type="checkbox" name="smtp_use_tls" {% if smtp_use_tls %}checked{% endif %}>
+          {% endif %}
+          Use STARTTLS
+        </label>
+        {% if smtp_use_tls_locked %}
+        <div class="hint">Set via <code>PROMHIS_SMTP_USE_TLS</code> — edit <code>.env</code> to change.</div>
+        {% endif %}
+      </div>
+
+      {% if not (digest_to_locked and digest_hour_utc_locked and smtp_host_locked and smtp_port_locked and smtp_user_locked and smtp_password_locked and smtp_from_locked and smtp_use_tls_locked) %}
+      <button type="submit" class="btn">Save</button>
+      {% endif %}
+    </form>
   </div>
 </div>
 {% endblock %}

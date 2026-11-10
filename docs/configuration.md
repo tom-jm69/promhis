@@ -70,6 +70,8 @@ Opt-in — off entirely unless both `digest_to` and `smtp_host` are set. Complem
 | `PROMHIS_SMTP_FROM` | `promhis@localhost` | `From:` address on the digest email. |
 | `PROMHIS_SMTP_USE_TLS` | `true` | STARTTLS on connect. |
 
+Every field above can also be set at runtime from the dashboard's **Settings** page instead of `.env` — same env-wins rule as `/metrics`: whichever env var is set is shown read-only there.
+
 ## Branding
 
 | Variable | Default | Notes |
@@ -87,6 +89,8 @@ Off by default. Writes a timestamped `pg_dump` `.sql` file on a schedule — a p
 | `PROMHIS_DB_DUMP_PATH` | `/var/lib/promhis/dumps` | Directory dumps are written into. **Needs to be a mounted volume** — `docker-compose.yml` already mounts one at this default path; otherwise dumps live on the container's ephemeral filesystem and vanish on restart. |
 | `PROMHIS_DB_DUMP_INTERVAL_HOURS` | `24` | How often to dump. |
 | `PROMHIS_DB_DUMP_MIN_FREE_MB` | `500` | Safety floor: a dump is skipped entirely (pg_dump is never even started) whenever free space at `db_dump_path` is below this — never risk writing a truncated backup or filling the volume. |
+
+Every field above can also be set at runtime from the **Settings** page — same env-wins rule as `/metrics`.
 
 ## See also
 

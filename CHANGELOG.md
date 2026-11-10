@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 
 - Optional scheduled database dumps (`pg_dump`), off by default — `PROMHIS_DB_DUMP_ENABLED`/`_PATH`/`_INTERVAL_HOURS`/`_MIN_FREE_MB`, also toggleable from the Settings page. A dump is skipped entirely (never started) if free disk space is below the configured floor.
+- Every daily-digest/SMTP setting (recipient, send hour, host/port/user/password/from/TLS) and the remaining database-dump settings (path, interval, minimum free space) are now also editable from the Settings page, not just env vars — same env-wins rule as `/metrics`.
 
 ### Changed
 

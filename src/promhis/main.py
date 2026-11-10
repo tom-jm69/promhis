@@ -69,11 +69,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await crud.sync_bootstrap_admin(
             session, username=settings.admin_user, password_hash=hash_password(settings.admin_password)
         )
-    tasks = [asyncio.create_task(run_poller()), asyncio.create_task(run_db_dump_scheduler())]
+    tasks = [
+        asyncio.create_task(run_poller()),
+        asyncio.create_task(run_db_dump_scheduler()),
+        asyncio.create_task(run_digest_scheduler()),
+    ]
     if settings.retention_days > 0:
         tasks.append(asyncio.create_task(_retention_loop()))
-    if settings.digest_to and settings.smtp_host:
-        tasks.append(asyncio.create_task(run_digest_scheduler()))
     try:
         yield
     finally:

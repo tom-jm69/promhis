@@ -23,7 +23,8 @@ This project has no supported native/host run path. Never run `uv run promhis`, 
 - `src/promhis/templating.py` — Jinja2 setup + custom filters (`timeago`, `duration`, `durationpct`, `sevclass`).
 - `src/promhis/poller.py` — optional backup sync against a live Alertmanager's `/api/v2/alerts`; the webhook is the primary ingest path, this is a bootstrap/backup, not a replacement.
 - `src/promhis/db_dump.py` — optional scheduled `pg_dump` backups, off by default; skips (never starts pg_dump) if free disk space is below a configured floor.
-- `src/promhis/main.py` — app factory, lifespan (DB init, poller/retention/db-dump tasks), and app-wide exception handlers (`SQLAlchemyError` → 503, generic `Exception` → 500, both logged).
+- `src/promhis/main.py` — app factory, lifespan (DB init, poller/retention/db-dump/digest tasks — the latter two always run and re-check their own effective settings each cycle, so toggling them from the Settings page takes effect without a restart), and app-wide exception handlers (`SQLAlchemyError` → 503, generic `Exception` → 500, both logged).
+- `src/promhis/runtime_settings.py` — generic "env wins, else a runtime `AppSetting` override, else a default" helpers shared by the metrics/db-dump/digest settings exposed on the Settings page.
 
 ## Conventions
 

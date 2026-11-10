@@ -218,3 +218,131 @@ async def test_settings_db_dump_enabled_env_locked(
 
     locked = await authed_client.post("/settings/db-dump/enabled", data={})
     assert locked.status_code == 403
+
+
+async def test_settings_db_dump_config_persists(authed_client: AsyncClient) -> None:
+    response = await authed_client.post(
+        "/settings/db-dump/config",
+        data={"db_dump_path": "/custom/dumps", "db_dump_interval_hours": "6", "db_dump_min_free_mb": "1000"},
+    )
+    assert response.status_code == 303
+
+    page = await authed_client.get("/settings")
+    assert 'value="/custom/dumps"' in page.text
+    assert 'value="6"' in page.text
+    assert 'value="1000"' in page.text
+
+
+async def test_settings_db_dump_path_env_locked(authed_client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PROMHIS_DB_DUMP_PATH", "/env/dumps")
+    monkeypatch.setattr(settings, "db_dump_path", "/env/dumps")
+
+    page = await authed_client.get("/settings")
+    assert "PROMHIS_DB_DUMP_PATH" in page.text
+    assert 'name="db_dump_path"' not in page.text
+
+    # The locked field is a no-op; other fields in the same form still save.
+    await authed_client.post(
+        "/settings/db-dump/config",
+        data={"db_dump_path": "/ignored", "db_dump_interval_hours": "12", "db_dump_min_free_mb": "250"},
+    )
+    page_after = await authed_client.get("/settings")
+    assert 'value="12"' in page_after.text
+    assert "/ignored" not in page_after.text
+
+
+async def test_settings_digest_config_persists_and_reports_configured(authed_client: AsyncClient) -> None:
+    response = await authed_client.post(
+        "/settings/digest/config",
+        data={
+            "digest_to": "oncall@example.com",
+            "digest_hour_utc": "9",
+            "smtp_host": "smtp.example.com",
+            "smtp_port": "587",
+            "smtp_user": "notifier",
+            "smtp_password": "hunter2",
+            "smtp_from": "promhis@example.com",
+            "smtp_use_tls": "on",
+        },
+    )
+    assert response.status_code == 303
+
+    page = await authed_client.get("/settings")
+    assert 'value="oncall@example.com"' in page.text
+    assert 'value="smtp.example.com"' in page.text
+    assert "Sends a daily rollup" in page.text  # digest_configured is now true
+
+
+async def test_settings_digest_smtp_password_blank_keeps_existing(authed_client: AsyncClient) -> None:
+    await authed_client.post(
+        "/settings/digest/config",
+        data={
+            "digest_to": "oncall@example.com",
+            "digest_hour_utc": "8",
+            "smtp_host": "smtp.example.com",
+            "smtp_port": "587",
+            "smtp_user": "",
+            "smtp_password": "hunter2",
+            "smtp_from": "promhis@localhost",
+        },
+    )
+    # Blank password on a second save keeps the stored one rather than clearing it.
+    await authed_client.post(
+        "/settings/digest/config",
+        data={
+            "digest_to": "oncall@example.com",
+            "digest_hour_utc": "8",
+            "smtp_host": "smtp.example.com",
+            "smtp_port": "587",
+            "smtp_user": "",
+            "smtp_password": "",
+            "smtp_from": "promhis@localhost",
+        },
+    )
+    page = await authed_client.get("/settings")
+    assert "Currently set" in page.text
+
+
+async def test_settings_digest_clear_password(authed_client: AsyncClient) -> None:
+    await authed_client.post(
+        "/settings/digest/config",
+        data={
+            "digest_to": "oncall@example.com",
+            "digest_hour_utc": "8",
+            "smtp_host": "smtp.example.com",
+            "smtp_port": "587",
+            "smtp_user": "",
+            "smtp_password": "hunter2",
+            "smtp_from": "promhis@localhost",
+        },
+    )
+    await authed_client.post("/settings/digest/clear-password")
+    page = await authed_client.get("/settings")
+    assert "Currently set" not in page.text
+
+
+async def test_settings_digest_smtp_host_env_locked(
+    authed_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("PROMHIS_SMTP_HOST", "env-smtp.example.com")
+    monkeypatch.setattr(settings, "smtp_host", "env-smtp.example.com")
+
+    page = await authed_client.get("/settings")
+    assert "PROMHIS_SMTP_HOST" in page.text
+    assert 'name="smtp_host"' not in page.text
+
+    await authed_client.post(
+        "/settings/digest/config",
+        data={
+            "digest_to": "oncall@example.com",
+            "digest_hour_utc": "8",
+            "smtp_host": "ignored.example.com",
+            "smtp_port": "587",
+            "smtp_user": "",
+            "smtp_password": "",
+            "smtp_from": "promhis@localhost",
+        },
+    )
+    page_after = await authed_client.get("/settings")
+    assert "ignored.example.com" not in page_after.text
+    assert "env-smtp.example.com" in page_after.text

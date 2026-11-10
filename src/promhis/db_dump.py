@@ -19,6 +19,7 @@ from urllib.parse import urlsplit, urlunsplit
 from promhis.auth import effective_db_dump_enabled
 from promhis.config import settings
 from promhis.db import async_session_factory
+from promhis.runtime_settings import effective_int, effective_str
 
 logger = logging.getLogger("promhis.db_dump")
 
@@ -42,15 +43,18 @@ def _free_mb(path: Path) -> float:
     return shutil.disk_usage(path).free / (1024 * 1024)
 
 
-async def run_db_dump() -> Path:
-    dump_dir = Path(settings.db_dump_path)
+async def run_db_dump(*, dump_path: str | None = None, min_free_mb: int | None = None) -> Path:
+    dump_path = dump_path if dump_path is not None else settings.db_dump_path
+    min_free_mb = min_free_mb if min_free_mb is not None else settings.db_dump_min_free_mb
+
+    dump_dir = Path(dump_path)
     dump_dir.mkdir(parents=True, exist_ok=True)
 
     free_mb = _free_mb(dump_dir)
-    if free_mb < settings.db_dump_min_free_mb:
+    if free_mb < min_free_mb:
         raise InsufficientDiskSpaceError(
             f"only {free_mb:.0f}MiB free at {dump_dir} "
-            f"(PROMHIS_DB_DUMP_MIN_FREE_MB requires {settings.db_dump_min_free_mb}MiB) — skipping"
+            f"(PROMHIS_DB_DUMP_MIN_FREE_MB requires {min_free_mb}MiB) — skipping"
         )
 
     filename = f"promhis-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.sql"
@@ -81,13 +85,29 @@ async def run_db_dump_scheduler() -> None:
     # toggling it on from the Settings page — when PROMHIS_DB_DUMP_ENABLED
     # isn't set — takes effect without a restart, same as metrics_enabled.
     while True:
-        await asyncio.sleep(settings.db_dump_interval_hours * 3600)
+        async with async_session_factory() as session:
+            interval_hours = await effective_int(
+                session,
+                key="db_dump_interval_hours",
+                env_var="PROMHIS_DB_DUMP_INTERVAL_HOURS",
+                default=settings.db_dump_interval_hours,
+            )
+        await asyncio.sleep(interval_hours * 3600)
         try:
             async with async_session_factory() as session:
                 enabled = await effective_db_dump_enabled(session)
-            if not enabled:
-                continue
-            path = await run_db_dump()
+                if not enabled:
+                    continue
+                dump_path = await effective_str(
+                    session, key="db_dump_path", env_var="PROMHIS_DB_DUMP_PATH", default=settings.db_dump_path
+                )
+                min_free_mb = await effective_int(
+                    session,
+                    key="db_dump_min_free_mb",
+                    env_var="PROMHIS_DB_DUMP_MIN_FREE_MB",
+                    default=settings.db_dump_min_free_mb,
+                )
+            path = await run_db_dump(dump_path=dump_path, min_free_mb=min_free_mb)
             logger.info("db dump: wrote %s", path)
         except InsufficientDiskSpaceError as exc:
             # Expected, actionable, not a bug — a plain warning, not a
