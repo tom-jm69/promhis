@@ -34,6 +34,10 @@ CI runs both of these on every push and PR; a PR that doesn't pass both won't be
 - **Dashboard UI changes should respect `DESIGN.md`.** The dashboard deliberately mirrors the real Prometheus/Alertmanager UI's visual language — read `DESIGN.md` before touching `static/css/style.css` or the templates. The marketing site under `website/` is a separate, intentionally different design system; `DESIGN.md` doesn't apply there.
 - **Don't add speculative abstraction.** Prefer the interface+registry pattern only where there's already a concrete second case (multiple notification channels, multiple auth schemes) — not preemptively elsewhere.
 
+## Versioning
+
+This project uses [Semantic Versioning](https://semver.org/). `pyproject.toml`'s `version` is the source of truth; a release is a `vMAJOR.MINOR.PATCH` git tag on `main`, which triggers [`publish.yml`](.github/workflows/publish.yml) to build and push the versioned image to GHCR. See [`CHANGELOG.md`](CHANGELOG.md) for what's shipped in each release.
+
 ## Commit / PR expectations
 
 - Keep PRs scoped to one change; unrelated cleanup belongs in its own PR.
