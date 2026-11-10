@@ -386,3 +386,30 @@ async def test_settings_db_dump_config_fields_hidden_until_enabled(authed_client
     await authed_client.post("/settings/db-dump/enabled", data={"db_dump_enabled": "on"})
     page_after = await authed_client.get("/settings")
     assert 'id="db-dump-config-fields" class="field-divider" style="display:none;"' not in page_after.text
+
+
+async def _digest_config_data(**overrides: str) -> dict:
+    base = {
+        "digest_to": "oncall@example.com",
+        "digest_hour_utc": "8",
+        "smtp_host": "smtp.example.com",
+        "smtp_port": "587",
+        "smtp_user": "",
+        "smtp_password": "",
+        "smtp_from": "promhis@localhost",
+    }
+    base.update(overrides)
+    return base
+
+
+async def test_settings_smtp_use_tls_select_persists_on_and_off(authed_client: AsyncClient) -> None:
+    # A <select> always submits a value, even for "Off" (value=""), unlike
+    # a checkbox which submits nothing when unchecked — regression test for
+    # a bug where the route checked "is not None" and treated "Off" as "on".
+    await authed_client.post("/settings/digest/config", data=await _digest_config_data(smtp_use_tls="on"))
+    page_on = await authed_client.get("/settings")
+    assert '<option value="on" selected>On</option>' in page_on.text
+
+    await authed_client.post("/settings/digest/config", data=await _digest_config_data(smtp_use_tls=""))
+    page_off = await authed_client.get("/settings")
+    assert '<option value="" selected>Off</option>' in page_off.text

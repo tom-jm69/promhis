@@ -245,7 +245,9 @@ async def update_digest_config(
     if not setting_env_locked("PROMHIS_SMTP_FROM"):
         await crud.set_app_setting(session, "smtp_from", smtp_from.strip() or None)
     if not setting_env_locked("PROMHIS_SMTP_USE_TLS"):
-        await crud.set_app_setting(session, "smtp_use_tls", "true" if smtp_use_tls is not None else "false")
+        # A <select> (unlike a checkbox) always submits a value, even for
+        # "Off" (value=""), so this checks truthiness, not "is not None".
+        await crud.set_app_setting(session, "smtp_use_tls", "true" if smtp_use_tls else "false")
     return RedirectResponse(url="/settings", status_code=303)
 
 

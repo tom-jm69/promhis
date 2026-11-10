@@ -672,7 +672,7 @@ main {
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
 
 .toggle-label { font-size: 12.5px; color: var(--text-muted); }
-.field input {
+.field input, .field select {
   width: 100%;
   background: var(--bg);
   border: 1px solid #ccc;
@@ -683,8 +683,8 @@ main {
   border-radius: var(--radius);
   outline: none;
 }
-.field input { transition: border-color 0.12s ease; }
-.field input:focus { border-color: var(--blue); }
+.field input, .field select { transition: border-color 0.12s ease; }
+.field input:focus, .field select:focus { border-color: var(--blue); }
 .field input.field-invalid { border-color: var(--red); }
 
 /* ------------------------------------------------------- integrations */
